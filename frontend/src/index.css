@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Styles pour l'impression de la carte patient */
+@media print {
+  /* Masquer les éléments non nécessaires à l'impression */
+  .print\\:hidden {
+    display: none !important;
+  }
+  
+  /* Ajuster les couleurs pour l'impression */
+  .print\\:bg-white {
+    background-color: white !important;
+  }
+  
+  .print\\:border {
+    border: 1px solid #e5e7eb !important;
+  }
+  
+  /* Ajuster la taille du QR code pour l'impression */
+  .print\\:w-24 {
+    width: 6rem !important;
+  }
+  
+  .print\\:h-24 {
+    height: 6rem !important;
+  }
+  
+  /* Ajuster les marges pour l'impression */
+  .print\\:mb-4 {
+    margin-bottom: 1rem !important;
+  }
+  
+  .print\\:gap-4 {
+    gap: 1rem !important;
+  }
+  
+  /* Ajuster la taille du texte pour l'impression */
+  .print\\:text-xs {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Forcer l'impression en couleur si possible */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  /* Optimiser la mise en page pour l'impression */
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Éviter les sauts de page indésirables */
+  .patient-card-section {
+    page-break-inside: avoid;
+  }
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200;
+  }
+  
+  .btn-primary {
+    @apply btn bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply btn bg-secondary-600 text-white hover:bg-secondary-700 focus:ring-secondary-500;
+  }
+  
+  .btn-success {
+    @apply btn bg-success-600 text-white hover:bg-success-700 focus:ring-success-500;
+  }
+  
+  .btn-warning {
+    @apply btn bg-warning-600 text-white hover:bg-warning-700 focus:ring-warning-500;
+  }
+  
+  .btn-danger {
+    @apply btn bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500;
+  }
+  
+  .btn-outline {
+    @apply btn border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-primary-500;
+  }
+  
+  .input {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm;
+  }
+  
+  .card {
+    @apply bg-white overflow-hidden shadow rounded-lg;
+  }
+  
+  .card-header {
+    @apply px-4 py-5 sm:px-6 border-b border-gray-200;
+  }
+  
+  .card-body {
+    @apply px-4 py-5 sm:p-6;
+  }
+  
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .badge-primary {
+    @apply badge bg-primary-100 text-primary-800;
+  }
+  
+  .badge-secondary {
+    @apply badge bg-secondary-100 text-secondary-800;
+  }
+  
+  .badge-success {
+    @apply badge bg-success-100 text-success-800;
+  }
+  
+  .badge-warning {
+    @apply badge bg-warning-100 text-warning-800;
+  }
+  
+  .badge-danger {
+    @apply badge bg-danger-100 text-danger-800;
+  }
+  
+  .badge-bronze {
+    @apply badge bg-amber-100 text-amber-800;
+  }
+  
+  .badge-silver {
+    @apply badge bg-gray-100 text-gray-800;
+  }
+  
+  .badge-gold {
+    @apply badge bg-yellow-100 text-yellow-800;
+  }
+  
+  .badge-platinum {
+    @apply badge bg-purple-100 text-purple-800;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+} 

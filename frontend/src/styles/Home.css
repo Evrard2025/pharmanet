@@ -1,0 +1,107 @@
+/* Styles personnalisés pour la page d'accueil */
+
+/* Amélioration de la responsivité du logo */
+.logo-container {
+  transition: all 0.3s ease;
+}
+
+.logo-container:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  .hero-title {
+    font-size: 1.75rem;
+    line-height: 2rem;
+  }
+  
+  .hero-description {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .hero-title {
+    font-size: 2.5rem;
+    line-height: 3rem;
+  }
+  
+  .hero-description {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+/* Amélioration des cartes sur mobile */
+@media (max-width: 640px) {
+  .feature-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .module-card {
+    padding: 1rem;
+  }
+}
+
+/* Animation d'apparition progressive */
+.fade-in {
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Amélioration des boutons sur mobile */
+@media (max-width: 640px) {
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    min-height: 44px; /* Accessibilité tactile */
+  }
+}
+
+/* Optimisation de l'espacement sur très petits écrans */
+@media (max-width: 480px) {
+  .container-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .section-padding {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Amélioration de la lisibilité sur mobile */
+@media (max-width: 640px) {
+  .text-container {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+
+
+
+
+/* Animation pour les cartes avec délai */
+.card-animation-delay-1 { animation-delay: 0.1s; }
+.card-animation-delay-2 { animation-delay: 0.2s; }
+.card-animation-delay-3 { animation-delay: 0.3s; }
+
+
+
+
