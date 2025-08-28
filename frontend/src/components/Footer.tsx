@@ -12,10 +12,10 @@ const Footer: React.FC = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-6">
               <div className="relative group">
-                <img src={logo} alt="Pharmacie Fidélité Logo" className="w-16 h-16 drop-shadow-lg group-hover:scale-110 transition-transform duration-200" />
+                <img src={logo} alt="PharmaNet Logo" className="w-16 h-16 drop-shadow-lg group-hover:scale-110 transition-transform duration-200" />
                 <div className="absolute inset-0 bg-primary-600 bg-opacity-20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <span className="ml-4 text-2xl font-bold">Pharmacie Fidélité</span>
+              <span className="ml-4 text-2xl font-bold">PharmaNet</span>
             </div>
             <p className="text-gray-300 mb-4">
               Votre santé est notre priorité. Découvrez notre gamme complète de produits pharmaceutiques et profitez de notre programme de fidélité exclusif.
@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li className="flex items-start text-gray-300">
                 <Mail className="w-4 h-4 mr-2 mt-0.5" />
-                <span>contact@pharmacie-fidelite.fr</span>
+                <span>contact@pharmanet.fr</span>
               </li>
               <li className="flex items-start text-gray-300">
                 <Phone className="w-4 h-4 mr-2 mt-0.5" />
@@ -92,7 +92,7 @@ const Footer: React.FC = () => {
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2024 Pharmacie Fidélité. Tous droits réservés.
+            © 2024 PharmaNet. Tous droits réservés.
           </p>
           <div className="flex items-center mt-4 md:mt-0">
             <span className="text-gray-400 text-sm mr-2">Fait avec</span>

@@ -1,0 +1,28 @@
+{
+  "name": "pharmanet-backend",
+  "version": "1.0.0",
+  "description": "Backend PharmaNet pour le déploiement Render",
+  "main": "back/server.js",
+  "scripts": {
+    "start": "cd back && npm start",
+    "build": "cd back && npm install",
+    "dev": "cd back && npm run dev"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-github-repo-url"
+  },
+  "keywords": [
+    "pharmanet",
+    "pharmacy",
+    "api",
+    "nodejs",
+    "express"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

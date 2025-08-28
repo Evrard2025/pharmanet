@@ -111,7 +111,7 @@ const Dashboard: React.FC = () => {
               Tableau de Bord
             </h1>
             <p className="text-gray-600 mt-2">
-              Vue d'ensemble de votre pharmacie et de vos performances
+              Vue d'ensemble de votre réseau PharmaNet et de vos performances
             </p>
           </div>
           <div className="flex space-x-2">

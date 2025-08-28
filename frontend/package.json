@@ -1,7 +1,7 @@
 {
   "name": "pharmacie-fidelite-frontend",
   "version": "1.0.0",
-  "description": "Frontend pour la plateforme de pharmacie fidélité",
+  "description": "Frontend pour la plateforme PharmaNet",
   "private": true,
   "dependencies": {
     "@types/node": "^16.18.0",

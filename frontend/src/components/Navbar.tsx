@@ -47,13 +47,12 @@ const Navbar: React.FC = () => {
               className="flex-shrink-0 flex items-center hover:scale-105 transition-transform duration-200"
             >
               <div className="relative">
-                <img src={logo} alt="Pharmacie Fidélité Logo" className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 drop-shadow-lg" />
+                <img src={logo} alt="PharmaNet Logo" className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 drop-shadow-lg" />
                 <div className="absolute inset-0 bg-primary-600 bg-opacity-20 rounded-full animate-pulse"></div>
               </div>
               <span className="ml-2 sm:ml-3 md:ml-4 text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
-                <span className="hidden sm:inline">Pharmacie </span>
-                <span className="sm:hidden">Pharma</span>
-                <span className="hidden md:inline">Fidélité</span>
+                <span className="hidden sm:inline">PharmaNet </span>
+                
               </span>
             </Link>
           </div>

@@ -65,7 +65,7 @@ const Home: React.FC = () => {
     {
       icon: <BarChart3 className="w-8 h-8" />,
       title: 'Tableau de Bord',
-      description: 'Statistiques complètes et indicateurs de performance de votre pharmacie.'
+              description: 'Statistiques complètes et indicateurs de performance de votre PharmaNet.'
     },
     {
       icon: <User className="w-8 h-8" />,
@@ -115,12 +115,12 @@ const Home: React.FC = () => {
             
             {/* Title - Responsive */}
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
-              Système de Gestion de Pharmacie
+              Système de Gestion PharmaNet
             </h1>
             
             {/* Description - Responsive */}
             <p className="text-lg sm:text-xl md:text-2xl mb-6 sm:mb-8 text-primary-100 max-w-4xl mx-auto px-4 text-container">
-              Solution complète pour la gestion des patients, ordonnances et programme de fidélité de votre pharmacie.
+              Solution complète pour la gestion des patients, ordonnances et programme de fidélité de votre réseau PharmaNet.
             </p>
             
             {/* Buttons - Responsive */}
@@ -238,7 +238,7 @@ const Home: React.FC = () => {
       <section className="py-12 sm:py-16 bg-gray-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 leading-tight">
-            Modernisez votre Pharmacie
+            Modernisez votre Réseau PharmaNet
           </h2>
           <p className="text-lg sm:text-xl mb-6 sm:mb-8 text-gray-300 max-w-4xl mx-auto">
             Gérez efficacement vos patients, leurs ordonnances et fidélisez votre clientèle avec notre solution complète.
@@ -249,7 +249,7 @@ const Home: React.FC = () => {
                 {(user?.role === 'admin' || user?.role === 'pharmacien') && (
                   <Link to="/admin" className="btn bg-primary-600 text-white hover:bg-primary-700">
                     <BarChart3 className="w-4 h-4 mr-2" />
-                    Dashboard Pharmacien
+                    Dashboard PharmaNet
                   </Link>
                 )}
                 {user?.role === 'admin' && (
