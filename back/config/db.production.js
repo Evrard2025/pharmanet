@@ -19,7 +19,8 @@ const sequelize = new Sequelize(
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false // Pour les certificats auto-signés
+        rejectUnauthorized: false,
+        ca: undefined // Pas de certificat CA spécifique
       }
     },
     pool: {
@@ -37,6 +38,12 @@ const sequelize = new Sequelize(
 
 const connectDB = async () => {
   try {
+    console.log('Tentative de connexion à PostgreSQL...');
+    console.log('Host:', dbHost);
+    console.log('Port:', dbPort);
+    console.log('Database:', dbName);
+    console.log('User:', dbUser);
+    
     await sequelize.authenticate();
     console.log('Connexion PostgreSQL production établie avec succès.');
     
@@ -48,6 +55,7 @@ const connectDB = async () => {
     console.log('Modèles synchronisés avec la base de données production.');
   } catch (error) {
     console.error('Erreur de connexion PostgreSQL production:', error);
+    console.error('Détails de l\'erreur:', error.message);
     process.exit(1);
   }
 };
