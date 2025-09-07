@@ -19,7 +19,9 @@ const sequelize = new Sequelize(connectionString, {
       rejectUnauthorized: false,
       // Accepter les certificats auto-signés d'Aiven
       checkServerIdentity: false
-    }
+    },
+    // Forcer SSL pour toutes les connexions
+    sslmode: 'require'
   },
   pool: {
     max: 20, // Limite de connexion Aiven
@@ -27,6 +29,8 @@ const sequelize = new Sequelize(connectionString, {
     acquire: 30000,
     idle: 10000
   },
+  // Configuration SSL pour toutes les connexions du pool
+  ssl: true,
   define: {
     timestamps: true,
     underscored: true
