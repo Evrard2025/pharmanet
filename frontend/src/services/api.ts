@@ -1,10 +1,15 @@
 import axios from 'axios';
 
+// Détection automatique de l'environnement
+const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
+const baseURL = process.env.REACT_APP_API_URL || (isProduction ? 'https://pharmanetws.onrender.com' : 'http://localhost:5001');
+
 // Debug: Afficher l'URL utilisée
-console.log('API URL:', process.env.REACT_APP_API_URL || 'http://localhost:5001');
+console.log('Environment:', isProduction ? 'Production' : 'Development');
+console.log('API URL:', baseURL);
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001',
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
