@@ -7,35 +7,29 @@ const dbName = process.env.DB_NAME || 'defaultdb',
   dbHost = process.env.DB_HOST || 'YOUR_AIVEN_HOST_HERE',
   dbPort = process.env.DB_PORT || 28221;
 
-const sequelize = new Sequelize(
-  dbName,
-  dbUser,
-  dbPassword,
-  {
-    host: dbHost,
-    port: dbPort,
-    dialect: 'postgres',
-    logging: false, // Pas de logs en production
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false
-      }
-    },
-    // Forcer SSL au niveau de la chaîne de connexion
-    ssl: true,
-    pool: {
-      max: 20, // Limite de connexion Aiven
-      min: 2,
-      acquire: 30000,
-      idle: 10000
-    },
-    define: {
-      timestamps: true,
-      underscored: true
+// Construire la chaîne de connexion avec SSL
+const connectionString = `postgres://${dbUser}:${dbPassword}@${dbHost}:${dbPort}/${dbName}?sslmode=require`;
+
+const sequelize = new Sequelize(connectionString, {
+  dialect: 'postgres',
+  logging: false, // Pas de logs en production
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
     }
+  },
+  pool: {
+    max: 20, // Limite de connexion Aiven
+    min: 2,
+    acquire: 30000,
+    idle: 10000
+  },
+  define: {
+    timestamps: true,
+    underscored: true
   }
-);
+});
 
 const connectDB = async () => {
   try {
@@ -44,6 +38,7 @@ const connectDB = async () => {
     console.log('Port:', dbPort);
     console.log('Database:', dbName);
     console.log('User:', dbUser);
+    console.log('Connection String:', connectionString.replace(dbPassword, '***'));
     
     await sequelize.authenticate();
     console.log('Connexion PostgreSQL production établie avec succès.');
