@@ -44,8 +44,8 @@ const sequelize = new Sequelize(connectionString, {
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: true, // Utiliser le vrai certificat CA
-      ca: aivenCACert // Certificat CA d'Aiven
+      rejectUnauthorized: false, // Accepter les certificats auto-signés d'Aiven
+      checkServerIdentity: false // Désactiver la vérification d'identité du serveur
     },
     // Forcer SSL pour toutes les connexions
     sslmode: 'require'
@@ -66,7 +66,10 @@ const sequelize = new Sequelize(connectionString, {
 
 const connectDB = async () => {
   try {
-    console.log('Tentative de connexion à PostgreSQL avec certificat CA Aiven...');
+    // Désactiver la vérification SSL stricte pour Aiven
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    
+    console.log('Tentative de connexion à PostgreSQL avec SSL permissif...');
     console.log('Host:', dbHost);
     console.log('Port:', dbPort);
     console.log('Database:', dbName);
