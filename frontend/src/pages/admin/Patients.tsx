@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { Plus, Search, Edit, Eye, Trash2, User, X, Save, Calendar, Stethoscope, Phone, MapPin, QrCode } from 'lucide-react';
+import { Plus, Search, Edit, Eye, Trash2, User, X, Save, Calendar, Stethoscope, QrCode, ChevronDown, ChevronRight, Pill } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
 import PatientCard from '../../components/PatientCard';
+
+interface ConsultationMedicament {
+  id: number;
+  nomMedicament: string;
+  dciMedicament?: string;
+  classeTherapeutique?: string;
+  posologie: string;
+  quantite: number;
+  unite: string;
+  dateDebutPrise?: string;
+  dateFinPrise?: string;
+  effetsIndesirablesSignales?: string;
+  observance?: 'bonne' | 'moyenne' | 'mauvaise';
+  statut: 'en_cours' | 'termine' | 'arrete';
+  precaution?: string;
+}
 
 interface Consultation {
   id: number;
@@ -18,6 +34,7 @@ interface Consultation {
   notesPharmacien?: string;
   statut: 'active' | 'terminee' | 'annulee' | 'renouvellement';
   typeConsultation: 'courte' | 'longue' | 'renouvellement' | 'urgence';
+  medicaments?: ConsultationMedicament[];
   createdAt: string;
   updatedAt: string;
 }
@@ -70,6 +87,7 @@ const Patients: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCardModal, setShowCardModal] = useState(false);
+  const [expandedConsultations, setExpandedConsultations] = useState<Set<number>>(new Set());
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
 
@@ -173,13 +191,13 @@ const Patients: React.FC = () => {
     reset();
   };
 
-  const calculateIMC = (poids: number, taille: number) => {
-    if (poids && taille) {
-      const tailleEnMetres = taille / 100;
-      return (poids / (tailleEnMetres * tailleEnMetres)).toFixed(1);
-    }
-    return 'N/A';
-  };
+  // const calculateIMC = (poids: number, taille: number) => {
+  //   if (poids && taille) {
+  //     const tailleEnMetres = taille / 100;
+  //     return (poids / (tailleEnMetres * tailleEnMetres)).toFixed(1);
+  //   }
+  //   return 'N/A';
+  // };
 
   const getAge = (dateNaissance: string) => {
     const today = new Date();
@@ -216,6 +234,23 @@ const Patients: React.FC = () => {
       case 'renouvellement': return 'Renouvellement';
       default: return status;
     }
+  };
+
+  // Fonctions pour gérer les dépliants
+  const toggleConsultation = (consultationId: number) => {
+    setExpandedConsultations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(consultationId)) {
+        newSet.delete(consultationId);
+      } else {
+        newSet.add(consultationId);
+      }
+      return newSet;
+    });
+  };
+
+  const isConsultationExpanded = (consultationId: number) => {
+    return expandedConsultations.has(consultationId);
   };
 
   // Ouvrir automatiquement la fiche d'un patient si un patientId est passé en paramètre
@@ -787,8 +822,13 @@ const Patients: React.FC = () => {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <div className="space-y-3">
                         {patientConsultations.data.consultations.map((consultation: Consultation) => (
-                          <div key={consultation.id} className="bg-white rounded-lg p-4 border border-gray-200">
-                            <div className="flex items-center justify-between mb-2">
+                          <div key={consultation.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                            {/* En-tête de la consultation (toujours visible) */}
+                            <div 
+                              className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                              onClick={() => toggleConsultation(consultation.id)}
+                            >
+                              <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-3">
                                 <span className="font-medium text-blue-600">
                                   #{consultation.numeroConsultation}
@@ -796,18 +836,47 @@ const Patients: React.FC = () => {
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(consultation.statut)}`}>
                                   {getStatusText(consultation.statut)}
                                 </span>
+                                  {consultation.medicaments && consultation.medicaments.length > 0 && (
+                                    <div className="flex items-center text-xs text-blue-600">
+                                      <Pill className="w-3 h-3 mr-1" />
+                                      {consultation.medicaments.length} médicament{consultation.medicaments.length > 1 ? 's' : ''}
                               </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-2">
                               <span className="text-sm text-gray-500">
                                 {formatDate(consultation.dateConsultation)}
                               </span>
+                                  {isConsultationExpanded(consultation.id) ? (
+                                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                                  ) : (
+                                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </div>
+                              </div>
                             </div>
                             
+                            {/* Contenu dépliable */}
+                            {isConsultationExpanded(consultation.id) && (
+                              <div className="border-t border-gray-200 p-4 bg-gray-50">
+                                <div className="space-y-4">
+                                  {/* Informations de base */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                               <div>
                                 <p><span className="font-medium">Médecin:</span> Dr. {consultation.medecinConsultant}</p>
                                 <p><span className="font-medium">Type:</span> {consultation.typeConsultation}</p>
                               </div>
                               <div>
+                                      <p><span className="font-medium">Date:</span> {formatDate(consultation.dateConsultation)}</p>
+                                      <p><span className="font-medium">Statut:</span> {getStatusText(consultation.statut)}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Informations médicales */}
+                                  {(consultation.diagnostic || consultation.indication) && (
+                                    <div className="border-t pt-3">
+                                      <h4 className="font-medium text-gray-900 mb-2">Informations médicales</h4>
+                                      <div className="space-y-2 text-sm">
                                 {consultation.diagnostic && (
                                   <p><span className="font-medium">Diagnostic:</span> {consultation.diagnostic}</p>
                                 )}
@@ -816,15 +885,101 @@ const Patients: React.FC = () => {
                                 )}
                               </div>
                             </div>
-                            
+                                  )}
+
+                                  {/* Médicaments prescrits */}
+                                  {consultation.medicaments && consultation.medicaments.length > 0 && (
+                                    <div className="border-t pt-3">
+                                      <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                                        <Pill className="w-4 h-4 mr-2 text-blue-600" />
+                                        Médicaments prescrits ({consultation.medicaments.length})
+                                      </h4>
+                                      <div className="space-y-3">
+                                        {consultation.medicaments.map((medicament, index) => (
+                                          <div key={medicament.id} className="bg-white p-3 rounded-lg border border-gray-200">
+                                            <div className="flex justify-between items-start mb-2">
+                                              <h5 className="font-medium text-gray-900">
+                                                {index + 1}. {medicament.nomMedicament}
+                                              </h5>
+                                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                                medicament.statut === 'en_cours' ? 'bg-green-100 text-green-800' :
+                                                medicament.statut === 'termine' ? 'bg-blue-100 text-blue-800' :
+                                                'bg-red-100 text-red-800'
+                                              }`}>
+                                                {medicament.statut === 'en_cours' ? 'En cours' :
+                                                 medicament.statut === 'termine' ? 'Terminé' : 'Arrêté'}
+                                              </span>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                              {medicament.dciMedicament && (
+                                                <p><span className="font-medium">DCI:</span> {medicament.dciMedicament}</p>
+                                              )}
+                                              {medicament.classeTherapeutique && (
+                                                <p><span className="font-medium">Classe:</span> {medicament.classeTherapeutique}</p>
+                                              )}
+                                              <p><span className="font-medium">Posologie:</span> {medicament.posologie}</p>
+                                              <p><span className="font-medium">Quantité:</span> {medicament.quantite} {medicament.unite}</p>
+                                            </div>
+
+                                            {(medicament.dateDebutPrise || medicament.dateFinPrise) && (
+                                              <div className="mt-2 text-sm">
+                                                <span className="font-medium">Période de prise:</span>
+                                                <div className="ml-4">
+                                                  {medicament.dateDebutPrise && <p>• Début: {formatDate(medicament.dateDebutPrise)}</p>}
+                                                  {medicament.dateFinPrise && <p>• Fin: {formatDate(medicament.dateFinPrise)}</p>}
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            {medicament.effetsIndesirablesSignales && (
+                                              <div className="mt-2 text-sm">
+                                                <span className="font-medium text-red-900">Effets indésirables:</span>
+                                                <p className="text-red-700">{medicament.effetsIndesirablesSignales}</p>
+                                              </div>
+                                            )}
+
+                                            {medicament.observance && (
+                                              <div className="mt-2 text-sm">
+                                                <span className="font-medium">Observance:</span>
+                                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                                  medicament.observance === 'bonne' ? 'bg-green-100 text-green-800' :
+                                                  medicament.observance === 'moyenne' ? 'bg-yellow-100 text-yellow-800' :
+                                                  'bg-red-100 text-red-800'
+                                                }`}>
+                                                  {medicament.observance === 'bonne' ? 'Bonne' :
+                                                   medicament.observance === 'moyenne' ? 'Moyenne' : 'Mauvaise'}
+                                                </span>
+                                              </div>
+                                            )}
+
+                                            {medicament.precaution && (
+                                              <div className="mt-2 text-sm">
+                                                <span className="font-medium">Précautions:</span>
+                                                <p className="text-gray-700">{medicament.precaution}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Ordonnance et notes */}
                             {(consultation.ordonnance || consultation.notesPharmacien) && (
-                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                    <div className="border-t pt-3">
+                                      <h4 className="font-medium text-gray-900 mb-2">Ordonnance et notes</h4>
+                                      <div className="space-y-2 text-sm">
                                 {consultation.ordonnance && (
-                                  <p className="text-sm"><span className="font-medium">Ordonnance:</span> {consultation.ordonnance}</p>
+                                          <p><span className="font-medium">Ordonnance:</span> {consultation.ordonnance}</p>
                                 )}
                                 {consultation.notesPharmacien && (
-                                  <p className="text-sm"><span className="font-medium">Notes:</span> {consultation.notesPharmacien}</p>
+                                          <p><span className="font-medium">Notes du pharmacien:</span> {consultation.notesPharmacien}</p>
                                 )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             )}
                           </div>

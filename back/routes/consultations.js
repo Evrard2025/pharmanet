@@ -92,6 +92,9 @@ router.get('/', protect, authorize('admin', 'pharmacien'), async (req, res) => {
       include: [{
         model: Patient,
         attributes: ['id', 'firstName', 'lastName']
+      }, {
+        model: ConsultationMedicament,
+        as: 'medicaments'
       }],
       order: [[sortBy, sortOrder]],
       limit: parseInt(limit),
@@ -110,11 +113,27 @@ router.get('/', protect, authorize('admin', 'pharmacien'), async (req, res) => {
   }
 });
 
+// GET /api/consultations/next-number - Récupérer le prochain numéro de consultation
+router.get('/next-number', protect, authorize('admin', 'pharmacien'), async (req, res) => {
+  try {
+    const nextNumber = await generateNextConsultationNumber();
+    res.json({ nextNumber });
+  } catch (error) {
+    console.error('Erreur lors de la génération du numéro de consultation:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
 // GET /api/consultations/:id - Récupérer une consultation par ID
 router.get('/:id', protect, authorize('admin', 'pharmacien'), async (req, res) => {
   try {
+    // Vérifier que l'ID est un nombre
+    if (isNaN(req.params.id)) {
+      return res.status(400).json({ message: 'ID de consultation invalide' });
+    }
+
     const consultation = await Consultation.findOne({
-      where: { id: req.params.id },
+      where: { id: parseInt(req.params.id) },
       include: [{
         model: Patient,
         attributes: ['id', 'firstName', 'lastName']
@@ -151,8 +170,6 @@ router.post('/', protect, authorize('admin', 'pharmacien'), [
   body('patientId').isInt().withMessage('ID du patient invalide'),
   body('medecinConsultant').notEmpty().withMessage('Le médecin consultant est requis'),
   body('dateConsultation').isDate().withMessage('Date de consultation invalide'),
-  body('periodePrise').optional().isString().withMessage('Période de prise invalide'),
-  body('datePriseMedicament').optional().isDate().withMessage('Date de prise de médicament invalide'),
   body('diagnostic').optional().isString(),
   body('indication').optional().isString(),
   body('ordonnance').optional().isString(),
@@ -202,8 +219,6 @@ router.post('/', protect, authorize('admin', 'pharmacien'), [
 // PUT /api/consultations/:id - Mettre à jour une consultation
 router.put('/:id', protect, authorize('admin', 'pharmacien'), [
   body('medecinConsultant').optional().isString(),
-  body('periodePrise').optional().isString().withMessage('Période de prise invalide'),
-  body('datePriseMedicament').optional().isDate().withMessage('Date de prise de médicament invalide'),
   body('diagnostic').optional().isString(),
   body('indication').optional().isString(),
   body('ordonnance').optional().isString(),
@@ -263,6 +278,9 @@ router.get('/patient/:patientId', protect, authorize('admin', 'pharmacien'), asy
       include: [{
         model: Patient,
         attributes: ['id', 'firstName', 'lastName']
+      }, {
+        model: ConsultationMedicament,
+        as: 'medicaments'
       }],
       order: [['dateConsultation', 'DESC']]
     });
@@ -273,6 +291,107 @@ router.get('/patient/:patientId', protect, authorize('admin', 'pharmacien'), asy
     });
   } catch (error) {
     console.error('Erreur lors de la récupération des consultations du patient:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
+// POST /api/consultations/:id/medicaments - Ajouter un médicament à une consultation
+router.post('/:id/medicaments', protect, authorize('admin', 'pharmacien'), [
+  body('nomMedicament').notEmpty().withMessage('Nom du médicament requis'),
+  body('posologie').notEmpty().withMessage('Posologie requise'),
+  body('quantite').isInt({ min: 1 }).withMessage('Quantité invalide'),
+  body('unite').notEmpty().withMessage('Unité requise')
+], async (req, res) => {
+  try {
+    console.log('=== AJOUT MÉDICAMENT ===');
+    console.log('ID consultation:', req.params.id);
+    console.log('Données reçues:', req.body);
+    
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log('Erreurs de validation:', errors.array());
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const consultation = await Consultation.findByPk(req.params.id);
+    if (!consultation) {
+      console.log('Consultation non trouvée');
+      return res.status(404).json({ message: 'Consultation non trouvée' });
+    }
+
+    console.log('Consultation trouvée:', consultation.id);
+    const medicament = await ConsultationMedicament.create({
+      consultationId: consultation.id,
+      nomMedicament: req.body.nomMedicament,
+      dciMedicament: req.body.dciMedicament || null,
+      classeTherapeutique: req.body.classeTherapeutique || null,
+      posologie: req.body.posologie,
+      quantite: req.body.quantite,
+      unite: req.body.unite,
+      dateDebutPrise: req.body.dateDebutPrise || null,
+      dateFinPrise: req.body.dateFinPrise || null,
+      effetsIndesirablesSignales: req.body.effetsIndesirablesSignales || null,
+      observance: req.body.observance || null,
+      precaution: req.body.precaution || null
+    });
+
+    console.log('Médicament créé avec succès:', medicament.id);
+    res.status(201).json(medicament);
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout du médicament:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
+// PUT /api/consultations/:id/medicaments/:medicamentId - Mettre à jour un médicament
+router.put('/:id/medicaments/:medicamentId', protect, authorize('admin', 'pharmacien'), [
+  body('posologie').optional().notEmpty().withMessage('Posologie requise'),
+  body('quantite').optional().isInt({ min: 1 }).withMessage('Quantité invalide'),
+  body('unite').optional().notEmpty().withMessage('Unité requise')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const medicament = await ConsultationMedicament.findOne({
+      where: {
+        id: req.params.medicamentId,
+        consultationId: req.params.id
+      }
+    });
+
+    if (!medicament) {
+      return res.status(404).json({ message: 'Médicament non trouvé' });
+    }
+
+    await medicament.update(req.body);
+    res.json(medicament);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du médicament:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
+// DELETE /api/consultations/:id/medicaments/:medicamentId - Supprimer un médicament
+router.delete('/:id/medicaments/:medicamentId', protect, authorize('admin', 'pharmacien'), async (req, res) => {
+  try {
+    const medicament = await ConsultationMedicament.findOne({
+      where: {
+        id: req.params.medicamentId,
+        consultationId: req.params.id
+      }
+    });
+
+    if (!medicament) {
+      return res.status(404).json({ message: 'Médicament non trouvé' });
+    }
+
+    await medicament.destroy();
+    res.json({ message: 'Médicament supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du médicament:', error);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 });

@@ -36,25 +36,6 @@ const Consultation = sequelize.define('Consultation', {
     type: DataTypes.DATEONLY,
     allowNull: true
   },
-  periodePrise: {
-    type: DataTypes.STRING(100),
-    allowNull: true,
-    comment: 'Période de prise (ex: "matin", "midi", "soir", "avant repas", "après repas")'
-  },
-  datePriseMedicament: {
-    type: DataTypes.DATEONLY,
-    allowNull: true,
-    comment: 'Date de début de prise du médicament'
-  },
-  medicamentId: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-    references: {
-      model: 'medicaments',
-      key: 'id'
-    },
-    comment: 'Médicament prescrit lors de cette consultation'
-  },
   diagnostic: {
     type: DataTypes.TEXT,
     allowNull: true
@@ -135,65 +116,67 @@ const ConsultationMedicament = sequelize.define('ConsultationMedicament', {
       key: 'id'
     }
   },
-  nom: {
+  // Informations du médicament
+  nomMedicament: {
     type: DataTypes.STRING(200),
-    allowNull: false
+    allowNull: false,
+    comment: 'Nom commercial du médicament'
   },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true
+  dciMedicament: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    comment: 'DCI (Dénomination Commune Internationale)'
   },
-  categorie: {
+  classeTherapeutique: {
     type: DataTypes.STRING(100),
-    allowNull: true
-  },
-  marque: {
-    type: DataTypes.STRING(100),
-    allowNull: true
+    allowNull: true,
+    comment: 'Classe thérapeutique du médicament'
   },
   posologie: {
     type: DataTypes.TEXT,
-    allowNull: false
-  },
-  duree: {
-    type: DataTypes.INTEGER, // en jours
-    allowNull: true
+    allowNull: false,
+    comment: 'Posologie prescrite'
   },
   quantite: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    comment: 'Quantité prescrite'
   },
   unite: {
     type: DataTypes.STRING(20),
     allowNull: false,
-    defaultValue: 'comprimé'
+    defaultValue: 'comprimé',
+    comment: 'Unité de mesure'
   },
-  momentPrise: {
-    type: DataTypes.ARRAY(DataTypes.STRING), // ['matin', 'midi', 'soir']
-    defaultValue: []
+  // Période de prise
+  dateDebutPrise: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    comment: 'Date de début de prise'
   },
-  precaution: {
+  dateFinPrise: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    comment: 'Date de fin de prise'
+  },
+  // Effets indésirables et suivi
+  effetsIndesirablesSignales: {
     type: DataTypes.TEXT,
-    allowNull: true
+    allowNull: true,
+    comment: 'Effets indésirables signalés par le patient'
+  },
+  observance: {
+    type: DataTypes.ENUM('bonne', 'moyenne', 'mauvaise'),
+    allowNull: true,
+    comment: 'Observance du traitement'
   },
   statut: {
     type: DataTypes.ENUM('en_cours', 'termine', 'arrete'),
     defaultValue: 'en_cours',
-    allowNull: false
+    allowNull: false,
+    comment: 'Statut du traitement'
   },
-  dateDebutPrise: {
-    type: DataTypes.DATEONLY,
-    allowNull: true
-  },
-  dateFinPrise: {
-    type: DataTypes.DATEONLY,
-    allowNull: true
-  },
-  observance: {
-    type: DataTypes.ENUM('bonne', 'moyenne', 'mauvaise'),
-    allowNull: true
-  },
-  effetsSecondaires: {
+  precaution: {
     type: DataTypes.TEXT,
     allowNull: true
   }
@@ -235,5 +218,6 @@ Consultation.prototype.getDuree = function() {
   }
   return null;
 };
+
 
 module.exports = { Consultation, ConsultationMedicament };

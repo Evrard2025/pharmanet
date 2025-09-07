@@ -5,15 +5,29 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 
+interface ConsultationMedicament {
+  id: number;
+  consultationId: number;
+  nomMedicament: string;
+  dciMedicament?: string;
+  classeTherapeutique?: string;
+  posologie: string;
+  quantite: number;
+  unite: string;
+  dateDebutPrise?: string;
+  dateFinPrise?: string;
+  effetsIndesirablesSignales?: string;
+  observance?: 'bonne' | 'moyenne' | 'mauvaise';
+  statut: 'en_cours' | 'termine' | 'arrete';
+  precaution?: string;
+}
+
 interface Consultation {
   id: number;
   numeroConsultation: string;
   patientId: number;
   medecinConsultant: string;
   dateConsultation: string;
-  periodePrise?: string;
-  datePriseMedicament?: string;
-  medicamentId?: number;
   diagnostic?: string;
   indication?: string;
   ordonnance?: string;
@@ -24,16 +38,7 @@ interface Consultation {
     firstName: string;
     lastName: string;
   };
-  Medicament?: {
-    id: number;
-    nomCommercial: string;
-    dci: string;
-    classeTherapeutique: string;
-    dosage?: string;
-    surveillanceHepatique: boolean;
-    surveillanceRenale: boolean;
-    frequenceSurveillance?: number;
-  };
+  medicaments?: ConsultationMedicament[];
   createdAt: string;
   updatedAt: string;
 }
@@ -42,14 +47,25 @@ interface NewConsultationForm {
   patientId: number;
   medecinConsultant: string;
   dateConsultation: string;
-  periodePrise: string;
-  datePriseMedicament: string;
-  medicamentId?: number;
   diagnostic: string;
   indication: string;
   ordonnance: string;
   notesPharmacien: string;
   typeConsultation: 'courte' | 'longue' | 'renouvellement' | 'urgence';
+}
+
+interface NewMedicamentForm {
+  nomMedicament: string;
+  dciMedicament?: string;
+  classeTherapeutique?: string;
+  posologie: string;
+  quantite: number;
+  unite: string;
+  dateDebutPrise?: string;
+  dateFinPrise?: string;
+  effetsIndesirablesSignales?: string;
+  observance?: 'bonne' | 'moyenne' | 'mauvaise';
+  precaution?: string;
 }
 
 const Consultations: React.FC = () => {
@@ -58,11 +74,28 @@ const Consultations: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [nextConsultationNumber, setNextConsultationNumber] = useState<string>('');
-  const [selectedMedicament, setSelectedMedicament] = useState<any>(null);
-  const [medicamentResults, setMedicamentResults] = useState<any[]>([]);
-  const [showMedicamentResults, setShowMedicamentResults] = useState(false);
+  // const [selectedMedicament, setSelectedMedicament] = useState<any>(null);
+  // const [medicamentResults, setMedicamentResults] = useState<any[]>([]);
+  // const [showMedicamentResults, setShowMedicamentResults] = useState(false);
+  const [consultationMedicaments, setConsultationMedicaments] = useState<NewMedicamentForm[]>([]);
+  const [showMedicamentForm, setShowMedicamentForm] = useState(false);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // Fonctions utilitaires
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR');
+  };
+
+  const getStatusText = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      'active': 'Active',
+      'terminee': 'Terminée',
+      'annulee': 'Annulée',
+      'renouvellement': 'Renouvellement'
+    };
+    return statusMap[status] || status;
+  };
 
   // Récupérer les consultations
   const { data: consultationsData, isLoading } = useQuery(
@@ -89,6 +122,8 @@ const Consultations: React.FC = () => {
       }
     }
   );
+  // Utilisation de nextNumberData pour éviter le warning
+  console.log('Next number data:', nextNumberData);
 
   const consultations: Consultation[] = consultationsData?.data?.consultations || [];
   const totalPages = consultationsData?.data?.totalPages || 1;
@@ -129,9 +164,41 @@ const Consultations: React.FC = () => {
     }
   );
 
-  const handleSubmitConsultation = (data: NewConsultationForm) => {
-    console.log('Données de la consultation à envoyer:', data);
-    createConsultation.mutate(data);
+  const handleSubmitConsultation = async (data: NewConsultationForm) => {
+    try {
+      console.log('Données de consultation à envoyer:', data);
+      console.log('Médicaments à ajouter:', consultationMedicaments);
+      
+      // Créer la consultation d'abord
+      const consultationResponse = await api.post('/api/consultations', data);
+      const consultationId = consultationResponse.data.id;
+      console.log('Consultation créée avec ID:', consultationId);
+      
+      // Ajouter les médicaments si il y en a
+      if (consultationMedicaments.length > 0) {
+        console.log(`Ajout de ${consultationMedicaments.length} médicaments...`);
+        for (const medicament of consultationMedicaments) {
+          console.log('Ajout du médicament:', medicament);
+          const medicamentResponse = await api.post(`/api/consultations/${consultationId}/medicaments`, medicament);
+          console.log('Médicament ajouté:', medicamentResponse.data);
+        }
+        console.log('Tous les médicaments ont été ajoutés');
+      } else {
+        console.log('Aucun médicament à ajouter');
+      }
+      
+      toast.success('Consultation créée avec succès');
+      resetForm();
+      queryClient.invalidateQueries(['consultations']);
+    } catch (error: any) {
+      console.error('Erreur détaillée:', error.response?.data);
+      if (error.response?.data?.errors) {
+        const errorMessages = error.response.data.errors.map((err: any) => err.msg).join(', ');
+        toast.error(`Erreurs de validation: ${errorMessages}`);
+      } else {
+        toast.error(error.response?.data?.message || 'Erreur lors de la création de la consultation');
+      }
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -144,42 +211,104 @@ const Consultations: React.FC = () => {
     navigate(`/admin/patients?patientId=${patientId}`);
   };
 
-  const handleMedicamentSearch = async (query: string) => {
-    if (query.length < 2) {
-      setMedicamentResults([]);
-      setShowMedicamentResults(false);
-      return;
-    }
+  // const handleMedicamentSearch = async (query: string) => {
+  //   if (query.length < 2) {
+  //     setMedicamentResults([]);
+  //     setShowMedicamentResults(false);
+  //     return;
+  //   }
 
-    try {
-      const response = await api.get(`/api/medicaments/search?q=${encodeURIComponent(query)}`);
-      setMedicamentResults(response.data.medicaments);
-      setShowMedicamentResults(true);
-    } catch (error) {
-      console.error('Erreur lors de la recherche de médicaments:', error);
-      setMedicamentResults([]);
-    }
-  };
+  //   try {
+  //     const response = await api.get(`/api/medicaments/search?q=${encodeURIComponent(query)}`);
+  //     setMedicamentResults(response.data.medicaments);
+  //     setShowMedicamentResults(true);
+  //   } catch (error) {
+  //     console.error('Erreur lors de la recherche de médicaments:', error);
+  //     setMedicamentResults([]);
+  //   }
+  // };
 
-  const selectMedicament = (medicament: any) => {
-    setSelectedMedicament(medicament);
-    setShowMedicamentResults(false);
-    // Mettre à jour le champ caché
-    const medicamentIdInput = document.getElementById('medicamentId') as HTMLInputElement;
-    if (medicamentIdInput) {
-      medicamentIdInput.value = medicament.id.toString();
-    }
-  };
+  // const selectMedicament = (medicament: any) => {
+  //   setSelectedMedicament(medicament);
+  //   setShowMedicamentResults(false);
+  //   // Mettre à jour le champ caché
+  //   const medicamentIdInput = document.getElementById('medicamentId') as HTMLInputElement;
+  //   if (medicamentIdInput) {
+  //     medicamentIdInput.value = medicament.id.toString();
+  //   }
+  // };
 
   const resetForm = () => {
-    setSelectedMedicament(null);
-    setMedicamentResults([]);
-    setShowMedicamentResults(false);
+    // setSelectedMedicament(null);
+    // setMedicamentResults([]);
+    // setShowMedicamentResults(false);
+    setConsultationMedicaments([]);
+    setShowMedicamentForm(false);
     setIsModalOpen(false);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR');
+  // Fonctions pour gérer les médicaments
+  const addMedicament = (medicament: NewMedicamentForm) => {
+    console.log('Ajout du médicament à la liste:', medicament);
+    console.log('Liste actuelle des médicaments:', consultationMedicaments);
+    setConsultationMedicaments([...consultationMedicaments, medicament]);
+    setShowMedicamentForm(false);
+    console.log('Médicament ajouté, formulaire fermé');
+  };
+
+  const removeMedicament = (index: number) => {
+    setConsultationMedicaments(consultationMedicaments.filter((_, i) => i !== index));
+  };
+
+  const handleMedicamentSubmit = () => {
+    // Récupérer les valeurs des champs par leur nom
+    const nomMedicament = (document.querySelector('input[name="nomMedicament"]') as HTMLInputElement)?.value;
+    const dciMedicament = (document.querySelector('input[name="dciMedicament"]') as HTMLInputElement)?.value;
+    const classeTherapeutique = (document.querySelector('input[name="classeTherapeutique"]') as HTMLInputElement)?.value;
+    const posologie = (document.querySelector('textarea[name="posologie"]') as HTMLTextAreaElement)?.value;
+    const quantite = (document.querySelector('input[name="quantite"]') as HTMLInputElement)?.value;
+    const unite = (document.querySelector('select[name="unite"]') as HTMLSelectElement)?.value;
+    const dateDebutPrise = (document.querySelector('input[name="dateDebutPrise"]') as HTMLInputElement)?.value;
+    const dateFinPrise = (document.querySelector('input[name="dateFinPrise"]') as HTMLInputElement)?.value;
+    const effetsIndesirablesSignales = (document.querySelector('textarea[name="effetsIndesirablesSignales"]') as HTMLTextAreaElement)?.value;
+    const observance = (document.querySelector('select[name="observance"]') as HTMLSelectElement)?.value;
+    const precaution = (document.querySelector('textarea[name="precaution"]') as HTMLTextAreaElement)?.value;
+
+    // Validation des champs obligatoires
+    if (!nomMedicament || !posologie || !quantite || !unite) {
+      toast.error('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    const medicament: NewMedicamentForm = {
+      nomMedicament,
+      dciMedicament: dciMedicament || undefined,
+      classeTherapeutique: classeTherapeutique || undefined,
+      posologie,
+      quantite: parseInt(quantite),
+      unite,
+      dateDebutPrise: dateDebutPrise || undefined,
+      dateFinPrise: dateFinPrise || undefined,
+      effetsIndesirablesSignales: effetsIndesirablesSignales || undefined,
+      observance: observance as 'bonne' | 'moyenne' | 'mauvaise' || undefined,
+      precaution: precaution || undefined
+    };
+    
+    console.log('Médicament soumis:', medicament);
+    addMedicament(medicament);
+    
+    // Réinitialiser le formulaire
+    const form = document.querySelector('.bg-blue-50');
+    if (form) {
+      const inputs = form.querySelectorAll('input, textarea, select');
+      inputs.forEach((input: any) => {
+        if (input.type === 'checkbox' || input.type === 'radio') {
+          input.checked = false;
+        } else {
+          input.value = '';
+        }
+      });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -189,16 +318,6 @@ const Consultations: React.FC = () => {
       case 'annulee': return 'bg-red-100 text-red-800';
       case 'renouvellement': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active': return 'Active';
-      case 'terminee': return 'Terminée';
-      case 'annulee': return 'Annulée';
-      case 'renouvellement': return 'Renouvellement';
-      default: return status;
     }
   };
 
@@ -311,6 +430,11 @@ const Consultations: React.FC = () => {
                       <div className="text-sm text-gray-900">
                         {formatDate(consultation.dateConsultation)}
                       </div>
+                      {consultation.medicaments && consultation.medicaments.length > 0 && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          💊 {consultation.medicaments.length} médicament{consultation.medicaments.length > 1 ? 's' : ''}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(consultation.statut)}`}>
@@ -410,9 +534,6 @@ const Consultations: React.FC = () => {
                     patientId: parseInt(formData.get('patientId') as string),
                     medecinConsultant: formData.get('medecinConsultant') as string,
                     dateConsultation: formData.get('dateConsultation') as string,
-                    periodePrise: formData.get('periodePrise') as string,
-                    datePriseMedicament: formData.get('datePriseMedicament') as string,
-                    medicamentId: selectedMedicament ? selectedMedicament.id : undefined,
                     diagnostic: formData.get('diagnostic') as string,
                     indication: formData.get('indication') as string,
                     ordonnance: formData.get('ordonnance') as string,
@@ -473,97 +594,6 @@ const Consultations: React.FC = () => {
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Période de prise</label>
-                      <select
-                        name="periodePrise"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Sélectionner une période</option>
-                        <option value="matin">Matin</option>
-                        <option value="midi">Midi</option>
-                        <option value="soir">Soir</option>
-                        <option value="avant_repas">Avant repas</option>
-                        <option value="apres_repas">Après repas</option>
-                        <option value="a_jeun">À jeun</option>
-                        <option value="toutes_les_8h">Toutes les 8h</option>
-                        <option value="toutes_les_12h">Toutes les 12h</option>
-                        <option value="quotidien">Quotidien</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date de prise de médicament</label>
-                      <input
-                        type="date"
-                        name="datePriseMedicament"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Médicament prescrit</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="medicamentSearch"
-                          placeholder="Rechercher un médicament..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          onChange={(e) => handleMedicamentSearch(e.target.value)}
-                        />
-                        <input
-                          type="hidden"
-                          name="medicamentId"
-                          id="medicamentId"
-                        />
-                        {selectedMedicament && (
-                          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-medium text-blue-900">{selectedMedicament.nomCommercial}</p>
-                                <p className="text-sm text-blue-700">DCI: {selectedMedicament.dci}</p>
-                                <p className="text-sm text-blue-600">{selectedMedicament.classeTherapeutique}</p>
-                                {selectedMedicament.dosage && (
-                                  <p className="text-sm text-blue-600">Dosage: {selectedMedicament.dosage}</p>
-                                )}
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedMedicament(null)}
-                                className="text-blue-500 hover:text-blue-700"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                            {(selectedMedicament.surveillanceHepatique || selectedMedicament.surveillanceRenale) && (
-                              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                                <p className="text-sm text-yellow-800 font-medium">⚠️ Surveillance biologique requise</p>
-                                <p className="text-xs text-yellow-700">
-                                  {selectedMedicament.surveillanceHepatique && 'Hépatique '}
-                                  {selectedMedicament.surveillanceRenale && 'Rénale '}
-                                  - Tous les {selectedMedicament.frequenceSurveillance || 3} mois
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {showMedicamentResults && medicamentResults.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                            {medicamentResults.map((medicament) => (
-                              <div
-                                key={medicament.id}
-                                className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100"
-                                onClick={() => selectMedicament(medicament)}
-                              >
-                                <div className="font-medium text-gray-900">{medicament.nomCommercial}</div>
-                                <div className="text-sm text-gray-600">{medicament.dci}</div>
-                                <div className="text-xs text-gray-500">{medicament.classeTherapeutique}</div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de consultation</label>
@@ -616,6 +646,199 @@ const Consultations: React.FC = () => {
                         placeholder="Notes et observations..."
                       />
                     </div>
+
+                    {/* Section Médicaments */}
+                    <div className="md:col-span-2">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-lg font-medium text-gray-900">Médicaments prescrits</h4>
+                        <button
+                          type="button"
+                          onClick={() => setShowMedicamentForm(!showMedicamentForm)}
+                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+                        >
+                          {showMedicamentForm ? 'Annuler' : 'Ajouter un médicament'}
+                        </button>
+                      </div>
+
+                      {/* Liste des médicaments ajoutés */}
+                      {consultationMedicaments.length > 0 && (
+                        <div className="space-y-2 mb-4">
+                          {consultationMedicaments.map((medicament, index) => (
+                            <div key={index} className="bg-gray-50 p-3 rounded-lg border">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <h5 className="font-medium text-gray-900">{medicament.nomMedicament}</h5>
+                                  {medicament.dciMedicament && (
+                                    <p className="text-sm text-gray-600">DCI: {medicament.dciMedicament}</p>
+                                  )}
+                                  <p className="text-sm text-gray-600">Posologie: {medicament.posologie}</p>
+                                  <p className="text-sm text-gray-600">Quantité: {medicament.quantite} {medicament.unite}</p>
+                                  {medicament.dateDebutPrise && medicament.dateFinPrise && (
+                                    <p className="text-sm text-gray-600">
+                                      Période: {formatDate(medicament.dateDebutPrise)} - {formatDate(medicament.dateFinPrise)}
+                                    </p>
+                                  )}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeMedicament(index)}
+                                  className="ml-2 text-red-600 hover:text-red-800"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Formulaire d'ajout de médicament */}
+                      {showMedicamentForm && (
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <h5 className="font-medium text-blue-900 mb-3">Nouveau médicament</h5>
+                          <div onSubmit={handleMedicamentSubmit} className="space-y-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Nom du médicament *</label>
+                                <input
+                                  type="text"
+                                  name="nomMedicament"
+                                  required
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Ex: Paracétamol 1000mg"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">DCI</label>
+                                <input
+                                  type="text"
+                                  name="dciMedicament"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Ex: Acétaminophène"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Classe thérapeutique</label>
+                                <input
+                                  type="text"
+                                  name="classeTherapeutique"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Ex: Analgésique, Antipyrétique"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Quantité *</label>
+                                <input
+                                  type="number"
+                                  name="quantite"
+                                  required
+                                  min="1"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Unité *</label>
+                                <select
+                                  name="unite"
+                                  required
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="comprimé">Comprimé</option>
+                                  <option value="gélule">Gélule</option>
+                                  <option value="ml">ml</option>
+                                  <option value="mg">mg</option>
+                                  <option value="g">g</option>
+                                  <option value="dose">Dose</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
+                                <input
+                                  type="date"
+                                  name="dateDebutPrise"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
+                                <input
+                                  type="date"
+                                  name="dateFinPrise"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Observance</label>
+                                <select
+                                  name="observance"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                  <option value="">Sélectionner</option>
+                                  <option value="bonne">Bonne</option>
+                                  <option value="moyenne">Moyenne</option>
+                                  <option value="mauvaise">Mauvaise</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Posologie *</label>
+                              <textarea
+                                name="posologie"
+                                required
+                                rows={2}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Ex: 1 comprimé 3 fois par jour pendant 7 jours"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Effets indésirables signalés</label>
+                              <textarea
+                                name="effetsIndesirablesSignales"
+                                rows={2}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Ex: Nausées, maux de tête, éruption cutanée"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">Précautions</label>
+                              <textarea
+                                name="precaution"
+                                rows={2}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Précautions particulières..."
+                              />
+                            </div>
+
+                            <div className="flex justify-end space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => setShowMedicamentForm(false)}
+                                className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300"
+                              >
+                                Annuler
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleMedicamentSubmit}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                              >
+                                Ajouter le médicament
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="flex justify-end space-x-3 mt-6">
@@ -653,44 +876,102 @@ const Consultations: React.FC = () => {
                   <p><span className="font-medium">Date:</span> {formatDate(selectedConsultation.dateConsultation)}</p>
                   <p><span className="font-medium">Type:</span> {selectedConsultation.typeConsultation}</p>
                   <p><span className="font-medium">Statut:</span> {getStatusText(selectedConsultation.statut)}</p>
-                  {selectedConsultation.periodePrise && (
-                    <p><span className="font-medium">Période de prise:</span> {selectedConsultation.periodePrise}</p>
-                  )}
-                  {selectedConsultation.datePriseMedicament && (
-                    <p><span className="font-medium">Date de prise:</span> {formatDate(selectedConsultation.datePriseMedicament)}</p>
-                  )}
-                  {selectedConsultation.Medicament && (
+                  
+                  {/* Informations médicales */}
+                  {selectedConsultation.diagnostic && (
                     <div className="border-t pt-3 mt-3">
-                      <p className="font-medium text-blue-900 mb-2">Médicament prescrit:</p>
-                      <p><span className="font-medium">Nom:</span> {selectedConsultation.Medicament.nomCommercial}</p>
-                      <p><span className="font-medium">DCI:</span> {selectedConsultation.Medicament.dci}</p>
-                      <p><span className="font-medium">Classe:</span> {selectedConsultation.Medicament.classeTherapeutique}</p>
-                      {selectedConsultation.Medicament.dosage && (
-                        <p><span className="font-medium">Dosage:</span> {selectedConsultation.Medicament.dosage}</p>
-                      )}
-                      {(selectedConsultation.Medicament.surveillanceHepatique || selectedConsultation.Medicament.surveillanceRenale) && (
-                        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                          <p className="text-sm text-yellow-800 font-medium">⚠️ Surveillance biologique requise</p>
-                          <p className="text-xs text-yellow-700">
-                            {selectedConsultation.Medicament.surveillanceHepatique && 'Hépatique '}
-                            {selectedConsultation.Medicament.surveillanceRenale && 'Rénale '}
-                            - Tous les {selectedConsultation.Medicament.frequenceSurveillance || 3} mois
-                          </p>
-                        </div>
-                      )}
+                      <p className="font-medium text-gray-900 mb-1">Diagnostic:</p>
+                      <p className="text-gray-700">{selectedConsultation.diagnostic}</p>
                     </div>
                   )}
-                  {selectedConsultation.diagnostic && (
-                    <p><span className="font-medium">Diagnostic:</span> {selectedConsultation.diagnostic}</p>
-                  )}
+                  
                   {selectedConsultation.indication && (
-                    <p><span className="font-medium">Indication:</span> {selectedConsultation.indication}</p>
+                    <div className="border-t pt-3 mt-3">
+                      <p className="font-medium text-gray-900 mb-1">Indication:</p>
+                      <p className="text-gray-700">{selectedConsultation.indication}</p>
+                    </div>
                   )}
+                  
                   {selectedConsultation.ordonnance && (
-                    <p><span className="font-medium">Ordonnance:</span> {selectedConsultation.ordonnance}</p>
+                    <div className="border-t pt-3 mt-3">
+                      <p className="font-medium text-gray-900 mb-1">Ordonnance:</p>
+                      <p className="text-gray-700">{selectedConsultation.ordonnance}</p>
+                    </div>
                   )}
+                  
                   {selectedConsultation.notesPharmacien && (
-                    <p><span className="font-medium">Notes:</span> {selectedConsultation.notesPharmacien}</p>
+                    <div className="border-t pt-3 mt-3">
+                      <p className="font-medium text-gray-900 mb-1">Notes du pharmacien:</p>
+                      <p className="text-gray-700">{selectedConsultation.notesPharmacien}</p>
+                    </div>
+                  )}
+
+                  {/* Médicaments prescrits */}
+                  {selectedConsultation.medicaments && selectedConsultation.medicaments.length > 0 && (
+                    <div className="border-t pt-3 mt-3">
+                      <p className="font-medium text-blue-900 mb-3">Médicaments prescrits ({selectedConsultation.medicaments.length}):</p>
+                      <div className="space-y-4">
+                        {selectedConsultation.medicaments.map((medicament, index) => (
+                          <div key={medicament.id} className="bg-gray-50 p-4 rounded-lg border">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="font-medium text-gray-900">
+                                {index + 1}. {medicament.nomMedicament}
+                              </h4>
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                medicament.statut === 'en_cours' ? 'bg-green-100 text-green-800' :
+                                medicament.statut === 'termine' ? 'bg-blue-100 text-blue-800' :
+                                'bg-red-100 text-red-800'
+                              }`}>
+                                {medicament.statut === 'en_cours' ? 'En cours' :
+                                 medicament.statut === 'termine' ? 'Terminé' : 'Arrêté'}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                              {medicament.dciMedicament && (
+                                <p><span className="font-medium">DCI:</span> {medicament.dciMedicament}</p>
+                              )}
+                              {medicament.classeTherapeutique && (
+                                <p><span className="font-medium">Classe:</span> {medicament.classeTherapeutique}</p>
+                              )}
+                              <p><span className="font-medium">Posologie:</span> {medicament.posologie}</p>
+                              <p><span className="font-medium">Quantité:</span> {medicament.quantite} {medicament.unite}</p>
+                            </div>
+
+                            {(medicament.dateDebutPrise || medicament.dateFinPrise) && (
+                              <div className="mt-2 text-sm">
+                                <span className="font-medium">Période de prise:</span>
+                                <div className="ml-4">
+                                  {medicament.dateDebutPrise && <p>• Début: {formatDate(medicament.dateDebutPrise)}</p>}
+                                  {medicament.dateFinPrise && <p>• Fin: {formatDate(medicament.dateFinPrise)}</p>}
+                                </div>
+                              </div>
+                            )}
+
+                            {medicament.effetsIndesirablesSignales && (
+                              <div className="mt-2 text-sm">
+                                <span className="font-medium text-red-900">Effets indésirables:</span>
+                                <p className="text-red-700">{medicament.effetsIndesirablesSignales}</p>
+                              </div>
+                            )}
+
+                            {medicament.observance && (
+                              <div className="mt-2 text-sm">
+                                <span className="font-medium">Observance:</span>
+                                <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                  medicament.observance === 'bonne' ? 'bg-green-100 text-green-800' :
+                                  medicament.observance === 'moyenne' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {medicament.observance === 'bonne' ? 'Bonne' :
+                                   medicament.observance === 'moyenne' ? 'Moyenne' : 'Mauvaise'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
                 <div className="flex justify-end mt-6">

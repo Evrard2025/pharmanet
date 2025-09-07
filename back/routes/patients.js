@@ -147,18 +147,33 @@ router.delete('/:id', protect, authorize('admin', 'pharmacien'), async (req, res
 // GET /api/patients/:id/card - Générer la carte virtuelle du patient
 router.get('/:id/card', protect, authorize('admin', 'pharmacien'), async (req, res) => {
   try {
+    const { Consultation, ConsultationMedicament, SurveillanceBiologique } = require('../models');
+    
     const patient = await Patient.findByPk(req.params.id, {
-      include: [{
-        model: Consultation,
-        attributes: ['id', 'numeroConsultation', 'dateConsultation', 'medecinConsultant', 'diagnostic', 'indication', 'ordonnance', 'statut', 'typeConsultation'],
-        order: [['dateConsultation', 'DESC']],
-        limit: 10 // Dernières 10 consultations
-      }]
+      include: [
+        {
+          model: Consultation,
+          attributes: ['id', 'numeroConsultation', 'dateConsultation', 'medecinConsultant', 'diagnostic', 'indication', 'ordonnance', 'statut', 'typeConsultation', 'notesPharmacien', 'dateDebut', 'dateFin', 'isRenouvelable', 'nombreRenouvellements', 'renouvellementsRestants', 'createdAt', 'updatedAt'],
+          order: [['dateConsultation', 'DESC']],
+          include: [{
+            model: ConsultationMedicament,
+            as: 'medicaments',
+            attributes: ['id', 'nomMedicament', 'dciMedicament', 'classeTherapeutique', 'posologie', 'quantite', 'unite', 'dateDebutPrise', 'dateFinPrise', 'effetsIndesirablesSignales', 'observance', 'statut', 'precaution']
+          }]
+        },
+        {
+          model: SurveillanceBiologique,
+          attributes: ['id', 'typeSurveillance', 'parametres', 'frequenceMois', 'dateDebut', 'dateProchaineAnalyse', 'dateDerniereAnalyse', 'resultatsDerniereAnalyse', 'statut', 'priorite', 'notes', 'laboratoire', 'contactLaboratoire']
+        }
+      ]
     });
 
     if (!patient) {
       return res.status(404).json({ message: 'Patient non trouvé' });
     }
+
+    // Calculer l'âge
+    const age = patient.getAge();
 
     // Créer les données pour le QR code avec toutes les informations
     const patientData = {
@@ -166,23 +181,36 @@ router.get('/:id/card', protect, authorize('admin', 'pharmacien'), async (req, r
       nom: patient.lastName,
       prenom: patient.firstName,
       dateNaissance: patient.dateNaissance,
-      age: patient.age,
+      age: age,
       sexe: patient.sexe,
       poids: patient.poids,
       taille: patient.taille,
       groupeSanguin: patient.groupeSanguin,
       adresse: patient.adresse,
       telephone: patient.telephone,
+      email: patient.email || null,
+      numeroSecu: patient.numeroSecu || null,
+      lieuNaissance: patient.lieuNaissance || null,
+      nationalite: patient.nationalite || null,
+      profession: patient.profession || null,
+      situationFamiliale: patient.situationFamiliale || null,
+      nombreEnfants: patient.nombreEnfants || null,
       traitementsChroniques: patient.traitementsChroniques || [],
       traitementsPonctuels: patient.traitementsPonctuels || [],
+      allergies: patient.allergies || [],
+      antecedentsMedicaux: patient.antecedentsMedicaux || [],
+      antecedentsChirurgicaux: patient.antecedentsChirurgicaux || [],
+      antecedentsFamiliaux: patient.antecedentsFamiliaux || [],
+      effetsIndesirables: patient.effetsIndesirables || null,
       sousContraceptif: patient.sousContraceptif,
       assurance: patient.assurance,
       structureEmission: patient.structureEmission,
       serviceEmission: patient.serviceEmission,
       medecinPrescripteur: patient.medecinPrescripteur,
+      medecinTraitant: patient.medecinTraitant || null,
       consultations: patient.Consultations?.length || 0,
       derniereConsultation: patient.Consultations?.[0]?.dateConsultation || null,
-      // Ajouter toutes les consultations détaillées
+      // Ajouter toutes les consultations détaillées avec médicaments
       consultationsDetaillees: patient.Consultations?.map(consultation => ({
         id: consultation.id,
         numero: consultation.numeroConsultation,
@@ -192,7 +220,30 @@ router.get('/:id/card', protect, authorize('admin', 'pharmacien'), async (req, r
         indication: consultation.indication,
         ordonnance: consultation.ordonnance,
         statut: consultation.statut,
-        type: consultation.typeConsultation
+        type: consultation.typeConsultation,
+        notesPharmacien: consultation.notesPharmacien,
+        dateDebut: consultation.dateDebut,
+        dateFin: consultation.dateFin,
+        isRenouvelable: consultation.isRenouvelable,
+        nombreRenouvellements: consultation.nombreRenouvellements,
+        renouvellementsRestants: consultation.renouvellementsRestants,
+        medicaments: consultation.medicaments || []
+      })) || [],
+      // Ajouter les informations de surveillance biologique
+      surveillanceBiologique: patient.SurveillanceBiologiques?.map(surveillance => ({
+        id: surveillance.id,
+        typeSurveillance: surveillance.typeSurveillance,
+        parametres: surveillance.parametres,
+        frequenceMois: surveillance.frequenceMois,
+        dateDebut: surveillance.dateDebut,
+        dateProchaineAnalyse: surveillance.dateProchaineAnalyse,
+        dateDerniereAnalyse: surveillance.dateDerniereAnalyse,
+        resultatsDerniereAnalyse: surveillance.resultatsDerniereAnalyse,
+        statut: surveillance.statut,
+        priorite: surveillance.priorite,
+        notes: surveillance.notes,
+        laboratoire: surveillance.laboratoire,
+        contactLaboratoire: surveillance.contactLaboratoire
       })) || []
     };
 

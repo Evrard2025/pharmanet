@@ -27,6 +27,8 @@ interface Prescription {
     posologie: string;
     quantite: number;
     unite: string;
+    dateDebutPrise?: string;
+    dateFinPrise?: string;
   }>;
 }
 

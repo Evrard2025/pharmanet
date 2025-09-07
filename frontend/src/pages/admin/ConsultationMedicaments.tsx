@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from 'react-query';
-import { Search, User, Pill, FlaskConical, Calendar, AlertTriangle, Info } from 'lucide-react';
+import { Search, User, Pill, FlaskConical, Calendar, AlertTriangle, Info, ChevronDown, ChevronRight } from 'lucide-react';
 import api from '../../services/api';
 
 interface Patient {
@@ -34,15 +34,31 @@ interface Medicament {
   statut: 'actif' | 'inactif' | 'retire';
 }
 
+interface ConsultationMedicament {
+  id: number;
+  consultationId: number;
+  nomMedicament: string;
+  dciMedicament?: string;
+  classeTherapeutique?: string;
+  posologie: string;
+  quantite: number;
+  unite: string;
+  dateDebutPrise?: string;
+  dateFinPrise?: string;
+  effetsIndesirablesSignales?: string;
+  observance?: 'bonne' | 'moyenne' | 'mauvaise';
+  statut: 'en_cours' | 'termine' | 'arrete';
+  precaution?: string;
+}
+
 interface Consultation {
   id: number;
   patientId: number;
   medecinConsultant: string;
   dateConsultation: string;
-  periodePrise?: string;
-  datePriseMedicament?: string;
   diagnostic?: string;
   indication?: string;
+  medicaments?: ConsultationMedicament[];
   createdAt: string;
 }
 
@@ -62,9 +78,10 @@ const ConsultationMedicaments: React.FC = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMedicament, setSelectedMedicament] = useState<Medicament | null>(null);
+  const [expandedConsultations, setExpandedConsultations] = useState<Set<number>>(new Set());
 
   // Récupérer les patients
-  const { data: patientsData, isLoading: patientsLoading } = useQuery(
+  const { data: patientsData } = useQuery(
     ['patients'],
     () => api.get('/api/patients')
   );
@@ -79,7 +96,7 @@ const ConsultationMedicaments: React.FC = () => {
   );
 
   // Récupérer les médicaments
-  const { data: medicamentsData, isLoading: medicamentsLoading } = useQuery(
+  const { data: medicamentsData } = useQuery(
     ['medicaments'],
     () => api.get('/api/medicaments')
   );
@@ -109,19 +126,11 @@ const ConsultationMedicaments: React.FC = () => {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const getPeriodeText = (periode: string) => {
-    const periodes: { [key: string]: string } = {
-      'matin': 'Matin',
-      'midi': 'Midi',
-      'soir': 'Soir',
-      'avant_repas': 'Avant repas',
-      'apres_repas': 'Après repas',
-      'a_jeun': 'À jeun',
-      'toutes_les_8h': 'Toutes les 8h',
-      'toutes_les_12h': 'Toutes les 12h',
-      'quotidien': 'Quotidien'
-    };
-    return periodes[periode] || periode;
+  const getPeriodePrise = (medicament: ConsultationMedicament) => {
+    const periode = [];
+    if (medicament.dateDebutPrise) periode.push(`Début: ${formatDate(medicament.dateDebutPrise)}`);
+    if (medicament.dateFinPrise) periode.push(`Fin: ${formatDate(medicament.dateFinPrise)}`);
+    return periode;
   };
 
   const getTypeColor = (type: string) => {
@@ -140,6 +149,23 @@ const ConsultationMedicaments: React.FC = () => {
       case 'mixte': return 'Mixte';
       default: return type;
     }
+  };
+
+  // Fonctions pour gérer les dépliants
+  const toggleConsultation = (consultationId: number) => {
+    setExpandedConsultations(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(consultationId)) {
+        newSet.delete(consultationId);
+      } else {
+        newSet.add(consultationId);
+      }
+      return newSet;
+    });
+  };
+
+  const isConsultationExpanded = (consultationId: number) => {
+    return expandedConsultations.has(consultationId);
   };
 
   const isOverdue = (dateString: string) => {
@@ -261,33 +287,134 @@ const ConsultationMedicaments: React.FC = () => {
                 ) : consultations.length > 0 ? (
                   <div className="space-y-4">
                     {consultations.map((consultation) => (
-                      <div key={consultation.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="font-medium text-gray-900">
-                            Dr. {consultation.medecinConsultant}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {formatDate(consultation.dateConsultation)}
+                      <div key={consultation.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                        {/* En-tête de la consultation (toujours visible) */}
+                        <div 
+                          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => toggleConsultation(consultation.id)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="font-medium text-gray-900">
+                                Dr. {consultation.medecinConsultant}
+                              </div>
+                              {consultation.medicaments && consultation.medicaments.length > 0 && (
+                                <div className="flex items-center text-xs text-blue-600">
+                                  <Pill className="w-3 h-3 mr-1" />
+                                  {consultation.medicaments.length} médicament{consultation.medicaments.length > 1 ? 's' : ''}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="text-sm text-gray-500">
+                                {formatDate(consultation.dateConsultation)}
+                              </div>
+                              {isConsultationExpanded(consultation.id) ? (
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                              )}
+                            </div>
                           </div>
                         </div>
-                        {consultation.periodePrise && (
-                          <div className="text-sm text-gray-600 mb-1">
-                            <span className="font-medium">Période de prise:</span> {getPeriodeText(consultation.periodePrise)}
-                          </div>
-                        )}
-                        {consultation.datePriseMedicament && (
-                          <div className="text-sm text-gray-600 mb-1">
-                            <span className="font-medium">Date de début:</span> {formatDate(consultation.datePriseMedicament)}
-                          </div>
-                        )}
-                        {consultation.diagnostic && (
-                          <div className="text-sm text-gray-600 mb-1">
-                            <span className="font-medium">Diagnostic:</span> {consultation.diagnostic}
-                          </div>
-                        )}
-                        {consultation.indication && (
-                          <div className="text-sm text-gray-600">
-                            <span className="font-medium">Indication:</span> {consultation.indication}
+
+                        {/* Contenu dépliable */}
+                        {isConsultationExpanded(consultation.id) && (
+                          <div className="border-t border-gray-200 p-4 bg-gray-50">
+                            <div className="space-y-4">
+                              {/* Informations médicales */}
+                              {(consultation.diagnostic || consultation.indication) && (
+                                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                  <h4 className="font-medium text-gray-900 mb-2">Informations médicales</h4>
+                                  <div className="space-y-2 text-sm">
+                                    {consultation.diagnostic && (
+                                      <p><span className="font-medium">Diagnostic:</span> {consultation.diagnostic}</p>
+                                    )}
+                                    {consultation.indication && (
+                                      <p><span className="font-medium">Indication:</span> {consultation.indication}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Médicaments prescrits */}
+                              {consultation.medicaments && consultation.medicaments.length > 0 && (
+                                <div className="bg-white p-3 rounded-lg border border-gray-200">
+                                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                                    <Pill className="w-4 h-4 mr-2 text-blue-600" />
+                                    Médicaments prescrits ({consultation.medicaments.length})
+                                  </h4>
+                                  <div className="space-y-3">
+                                    {consultation.medicaments.map((medicament, index) => (
+                                      <div key={medicament.id} className="bg-gray-50 p-3 rounded border-l-4 border-blue-400">
+                                        <div className="flex justify-between items-start mb-2">
+                                          <h5 className="font-medium text-gray-900">
+                                            {index + 1}. {medicament.nomMedicament}
+                                          </h5>
+                                          <span className={`px-2 py-1 text-xs rounded-full ${
+                                            medicament.statut === 'en_cours' ? 'bg-green-100 text-green-800' :
+                                            medicament.statut === 'termine' ? 'bg-blue-100 text-blue-800' :
+                                            'bg-red-100 text-red-800'
+                                          }`}>
+                                            {medicament.statut === 'en_cours' ? 'En cours' :
+                                             medicament.statut === 'termine' ? 'Terminé' : 'Arrêté'}
+                                          </span>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                          {medicament.dciMedicament && (
+                                            <p><span className="font-medium">DCI:</span> {medicament.dciMedicament}</p>
+                                          )}
+                                          {medicament.classeTherapeutique && (
+                                            <p><span className="font-medium">Classe:</span> {medicament.classeTherapeutique}</p>
+                                          )}
+                                          <p><span className="font-medium">Posologie:</span> {medicament.posologie}</p>
+                                          <p><span className="font-medium">Quantité:</span> {medicament.quantite} {medicament.unite}</p>
+                                        </div>
+
+                                        {getPeriodePrise(medicament).length > 0 && (
+                                          <div className="mt-2 text-sm">
+                                            <span className="font-medium">Période de prise:</span>
+                                            <div className="ml-4">
+                                              {medicament.dateDebutPrise && <p>• Début: {formatDate(medicament.dateDebutPrise)}</p>}
+                                              {medicament.dateFinPrise && <p>• Fin: {formatDate(medicament.dateFinPrise)}</p>}
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        {medicament.effetsIndesirablesSignales && (
+                                          <div className="mt-2 text-sm">
+                                            <span className="font-medium text-red-900">Effets indésirables:</span>
+                                            <p className="text-red-700">{medicament.effetsIndesirablesSignales}</p>
+                                          </div>
+                                        )}
+
+                                        {medicament.observance && (
+                                          <div className="mt-2 text-sm">
+                                            <span className="font-medium">Observance:</span>
+                                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                              medicament.observance === 'bonne' ? 'bg-green-100 text-green-800' :
+                                              medicament.observance === 'moyenne' ? 'bg-yellow-100 text-yellow-800' :
+                                              'bg-red-100 text-red-800'
+                                            }`}>
+                                              {medicament.observance === 'bonne' ? 'Bonne' :
+                                               medicament.observance === 'moyenne' ? 'Moyenne' : 'Mauvaise'}
+                                            </span>
+                                          </div>
+                                        )}
+
+                                        {medicament.precaution && (
+                                          <div className="mt-2 text-sm">
+                                            <span className="font-medium">Précautions:</span>
+                                            <p className="text-gray-700">{medicament.precaution}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

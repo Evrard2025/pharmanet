@@ -4,9 +4,9 @@
   "description": "Backend PharmaNet pour le déploiement Render",
   "main": "back/server.js",
   "scripts": {
-    "start": "cd back && npm start",
-    "build": "cd back && npm install",
-    "dev": "cd back && npm run dev"
+    "start": "cd back && yarn start",
+    "build": "cd back && yarn install",
+    "dev": "cd back && yarn dev"
   },
   "engines": {
     "node": ">=16.0.0",

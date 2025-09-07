@@ -149,9 +149,13 @@ const PrescriptionMedicament = sequelize.define('PrescriptionMedicament', {
     allowNull: false,
     defaultValue: 'comprimé'
   },
-  momentPrise: {
-    type: DataTypes.ARRAY(DataTypes.STRING), // ['matin', 'midi', 'soir']
-    defaultValue: []
+  dateDebutPrise: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
+  },
+  dateFinPrise: {
+    type: DataTypes.DATEONLY,
+    allowNull: true
   },
   precaution: {
     type: DataTypes.TEXT,

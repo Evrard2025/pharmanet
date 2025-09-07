@@ -74,6 +74,66 @@ const Patient = sequelize.define('Patient', {
   assurance: {
     type: DataTypes.STRING(120),
     allowNull: true
+  },
+  email: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    validate: {
+      isEmail: true
+    }
+  },
+  numeroSecu: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    field: 'numerosecu'
+  },
+  lieuNaissance: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    field: 'lieunaissance'
+  },
+  nationalite: {
+    type: DataTypes.STRING(50),
+    allowNull: true
+  },
+  profession: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
+  situationFamiliale: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'situationfamiliale'
+  },
+  nombreEnfants: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 0,
+    field: 'nombreenfants'
+  },
+  allergies: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: []
+  },
+  antecedentsMedicaux: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
+    field: 'antecedentsmedicaux'
+  },
+  antecedentsChirurgicaux: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
+    field: 'antecedentschirurgicaux'
+  },
+  antecedentsFamiliaux: {
+    type: DataTypes.ARRAY(DataTypes.STRING),
+    defaultValue: [],
+    field: 'antecedentsfamiliaux'
+  },
+  medecinTraitant: {
+    type: DataTypes.STRING(150),
+    allowNull: true,
+    field: 'medecintraitant'
   }
 }, {
   tableName: 'patients',

@@ -252,7 +252,8 @@ router.post('/:id/medicaments', protect, authorize('admin', 'pharmacien'), [
       posologie: req.body.posologie,
       quantite: req.body.quantite,
       unite: req.body.unite,
-      momentPrise: req.body.momentPrise || [],
+      dateDebutPrise: req.body.dateDebutPrise || null,
+      dateFinPrise: req.body.dateFinPrise || null,
       precaution: req.body.precaution || null,
       duree: req.body.duree || null
     });

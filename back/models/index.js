@@ -14,9 +14,6 @@ Consultation.belongsTo(Patient, { foreignKey: 'patientId' });
 Consultation.hasMany(ConsultationMedicament, { foreignKey: 'consultationId', as: 'medicaments' });
 ConsultationMedicament.belongsTo(Consultation, { foreignKey: 'consultationId' });
 
-// Associations Consultation - Medicament
-Consultation.belongsTo(Medicament, { foreignKey: 'medicamentId' });
-Medicament.hasMany(Consultation, { foreignKey: 'medicamentId' });
 
 // Associations Patient - SurveillanceBiologique
 Patient.hasMany(SurveillanceBiologique, { foreignKey: 'patientId' });
