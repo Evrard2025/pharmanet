@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+// Debug: Afficher l'URL utilisée
+console.log('API URL:', process.env.REACT_APP_API_URL || 'http://localhost:5001');
+
 const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001',
   headers: {
