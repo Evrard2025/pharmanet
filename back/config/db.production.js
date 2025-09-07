@@ -19,10 +19,11 @@ const sequelize = new Sequelize(
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false,
-        ca: undefined // Pas de certificat CA spécifique
+        rejectUnauthorized: false
       }
     },
+    // Forcer SSL au niveau de la chaîne de connexion
+    ssl: true,
     pool: {
       max: 20, // Limite de connexion Aiven
       min: 2,
