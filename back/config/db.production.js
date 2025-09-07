@@ -16,7 +16,9 @@ const sequelize = new Sequelize(connectionString, {
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      // Accepter les certificats auto-signés d'Aiven
+      checkServerIdentity: false
     }
   },
   pool: {
@@ -33,6 +35,9 @@ const sequelize = new Sequelize(connectionString, {
 
 const connectDB = async () => {
   try {
+    // Désactiver la vérification SSL stricte pour Aiven
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    
     console.log('Tentative de connexion à PostgreSQL...');
     console.log('Host:', dbHost);
     console.log('Port:', dbPort);
