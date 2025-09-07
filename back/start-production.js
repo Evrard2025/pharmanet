@@ -44,11 +44,15 @@ const corsOptions = {
     
     const allowedOrigins = process.env.CORS_ORIGIN 
       ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-      : ['https://your-frontend-domain.com'];
+      : ['https://test-pharma.netlify.app', 'https://your-frontend-domain.com'];
+    
+    console.log('CORS Origin requested:', origin);
+    console.log('Allowed origins:', allowedOrigins);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log('CORS blocked for origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
