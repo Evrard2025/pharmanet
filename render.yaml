@@ -11,6 +11,7 @@ services:
         value: production
       - key: PORT
         value: 10000
+      # Configuration de base de données - REMPLACEZ PAR VOS VRAIES VALEURS
       - key: DB_NAME
         value: defaultdb
       - key: DB_USER
@@ -21,9 +22,11 @@ services:
         value: YOUR_AIVEN_HOST_HERE
       - key: DB_PORT
         value: 28221
+      # Configuration JWT
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 24h
+      # Configuration CORS
       - key: CORS_ORIGIN
         value: https://test-pharma.netlify.app
