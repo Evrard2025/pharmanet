@@ -16,8 +16,7 @@ const sequelize = new Sequelize(connectionString, {
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: true, // Accepter les certificats valides
-      // Pas de certificat CA spécifique pour plus de compatibilité
+      rejectUnauthorized: false, // Accepter les certificats auto-signés d'Aiven
     }
   },
   pool: {
@@ -34,6 +33,12 @@ const sequelize = new Sequelize(connectionString, {
 
 const connectDB = async () => {
   try {
+    // Configuration spécifique pour Aiven PostgreSQL
+    if (dbHost.includes('aivencloud.com')) {
+      console.log('🔧 Configuration Aiven détectée - SSL permissif activé');
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
+    
     console.log('Tentative de connexion à PostgreSQL avec SSL...');
     console.log('Host:', dbHost);
     console.log('Port:', dbPort);
@@ -55,7 +60,11 @@ const connectDB = async () => {
     console.error('❌ Erreur de connexion PostgreSQL production:', error.message);
     
     // Diagnostic des erreurs communes
-    if (error.message.includes('no pg_hba.conf entry')) {
+    if (error.message.includes('self-signed certificate')) {
+      console.error('🔍 Diagnostic: Certificat SSL auto-signé (Aiven)');
+      console.error('💡 Solution: Configuration SSL permissive déjà appliquée');
+      console.error('💡 Vérifiez que rejectUnauthorized: false est bien configuré');
+    } else if (error.message.includes('no pg_hba.conf entry')) {
       console.error('🔍 Diagnostic: Problème d\'authentification SSL');
       console.error('💡 Solution: Vérifiez que votre base de données accepte les connexions SSL');
     } else if (error.message.includes('ENOTFOUND')) {
