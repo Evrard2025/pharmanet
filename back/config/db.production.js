@@ -17,6 +17,15 @@ const sequelize = new Sequelize(connectionString, {
     ssl: {
       require: true,
       rejectUnauthorized: false, // Accepter les certificats auto-signés d'Aiven
+      checkServerIdentity: false // Désactiver la vérification d'identité du serveur
+    },
+    // Forcer SSL au niveau du driver PostgreSQL
+    sslmode: 'require',
+    // Configuration SSL pour toutes les connexions
+    native: false,
+    // Options supplémentaires pour forcer SSL
+    options: {
+      ssl: true
     }
   },
   pool: {
