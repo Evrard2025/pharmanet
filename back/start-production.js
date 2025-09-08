@@ -12,7 +12,7 @@ process.env.NODE_ENV = 'production';
 require('dotenv').config({ path: '.env-production' });
 
 // Importer et démarrer le serveur
-const { connectDB } = require('./config/db.production.robust');
+const { connectDB } = require('./config/db.production.final');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
