@@ -99,9 +99,20 @@ const connectDB = async () => {
     // Importer les modèles pour définir les associations
     require('../models/index');
     
-    // Synchroniser les modèles avec la base de données (alter: true pour créer les tables manquantes)
-    await sequelize.sync({ force: false, alter: true });
-    console.log('✅ Modèles synchronisés avec la base de données production.');
+    // Vérifier si les tables existent
+    const tables = await sequelize.getQueryInterface().showAllTables();
+    console.log('📋 Tables existantes:', tables);
+    
+    // Si aucune table n'existe, forcer la création
+    if (tables.length === 0) {
+      console.log('🔄 Aucune table trouvée, création de toutes les tables...');
+      await sequelize.sync({ force: true });
+      console.log('✅ Toutes les tables ont été créées.');
+    } else {
+      console.log('🔄 Tables existantes, synchronisation en mode alter...');
+      await sequelize.sync({ force: false, alter: true });
+      console.log('✅ Modèles synchronisés avec la base de données production.');
+    }
   } catch (error) {
     console.error('❌ Erreur de connexion PostgreSQL production:', error.message);
     
