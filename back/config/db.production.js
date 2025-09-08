@@ -20,13 +20,7 @@ const sequelize = new Sequelize(connectionString, {
       checkServerIdentity: false // Désactiver la vérification d'identité du serveur
     },
     // Forcer SSL au niveau du driver PostgreSQL
-    sslmode: 'require',
-    // Configuration SSL pour toutes les connexions
-    native: false,
-    // Options supplémentaires pour forcer SSL
-    options: {
-      ssl: true
-    }
+    sslmode: 'require'
   },
   pool: {
     max: 10, // Limite plus conservatrice
