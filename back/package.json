@@ -12,6 +12,7 @@
     "db:seed": "sequelize-cli db:seed:all",
     "db:reset:patients": "node scripts/reset-patient-table.js",
     "db:migrate:consultations": "node scripts/migrate-to-consultations.js",
+    "db:create-tables": "node migrate-tables.js",
     "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {

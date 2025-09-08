@@ -99,8 +99,8 @@ const connectDB = async () => {
     // Importer les modèles pour définir les associations
     require('../models/index');
     
-    // Synchroniser les modèles avec la base de données (force: false pour éviter les conflits)
-    await sequelize.sync({ force: false, alter: false });
+    // Synchroniser les modèles avec la base de données (alter: true pour créer les tables manquantes)
+    await sequelize.sync({ force: false, alter: true });
     console.log('✅ Modèles synchronisés avec la base de données production.');
   } catch (error) {
     console.error('❌ Erreur de connexion PostgreSQL production:', error.message);
