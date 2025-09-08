@@ -58,6 +58,13 @@ const sequelize = new Sequelize(connectionString, {
   },
   // Configuration SSL pour toutes les connexions du pool
   ssl: true,
+  // Forcer SSL au niveau global
+  options: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
+  },
   define: {
     timestamps: true,
     underscored: true
