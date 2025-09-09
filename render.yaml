@@ -5,28 +5,39 @@ services:
     plan: free
     rootDir: back
     buildCommand: npm install
-    startCommand: npm run start:prod
+    startCommand: node start-render.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
-      # Configuration de base de données - REMPLACEZ PAR VOS VRAIES VALEURS
-      - key: DB_NAME
-        value: defaultdb
-      - key: DB_USER
-        value: avnadmin
-      - key: DB_PASSWORD
-        value: YOUR_AIVEN_PASSWORD_HERE
-      - key: DB_HOST
-        value: YOUR_AIVEN_HOST_HERE
-      - key: DB_PORT
-        value: 28221
       # Configuration JWT
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 24h
-      # Configuration CORS
+      # Configuration CORS - Remplacez par l'URL de votre frontend
       - key: CORS_ORIGIN
         value: https://test-pharma.netlify.app
+      # Configuration de sécurité
+      - key: HELMET_ENABLED
+        value: true
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      # Logs
+      - key: MORGAN_FORMAT
+        value: combined
+
+  - type: pserv
+    name: pharmanet-database
+    env: postgresql
+    plan: free
+    envVars:
+      - key: POSTGRES_DB
+        value: pharmanet
+      - key: POSTGRES_USER
+        value: pharmanet_user
+      - key: POSTGRES_PASSWORD
+        generateValue: true

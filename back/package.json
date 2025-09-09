@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "start:prod": "node start-production.js",
+    "start:render": "node start-render.js",
     "dev": "nodemon server.js",
     "test": "jest",
     "db:migrate": "sequelize-cli db:migrate",
@@ -13,6 +14,8 @@
     "db:reset:patients": "node scripts/reset-patient-table.js",
     "db:migrate:consultations": "node scripts/migrate-to-consultations.js",
     "db:create-tables": "node migrate-tables.js",
+    "db:check": "node check-database-structure.js",
+    "db:fix": "node fix-database-schema.js",
     "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {
