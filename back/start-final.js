@@ -8,6 +8,9 @@
 // Définir l'environnement de production
 process.env.NODE_ENV = 'production';
 
+// Forcer SSL pour toutes les connexions PostgreSQL
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Charger les variables d'environnement
 require('dotenv').config();
 
@@ -38,6 +41,12 @@ const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
   logging: false,
   dialectOptions: {
     ssl: sslConfig
+  },
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
   },
   define: {
     timestamps: true,
