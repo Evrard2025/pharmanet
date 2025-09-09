@@ -42,6 +42,9 @@ const sequelize = new Sequelize(
   }
 );
 
+// Configuration pour Render (proxy)
+app.set('trust proxy', 1);
+
 // Middleware de sécurité
 app.use(helmet());
 app.use(cors({
@@ -88,7 +91,22 @@ const addMissingColumnsToPatients = async () => {
       { name: 'allergies', type: 'TEXT DEFAULT \'[]\'' },
       { name: 'antecedentsMedicaux', type: 'TEXT DEFAULT \'[]\'' },
       { name: 'antecedentsChirurgicaux', type: 'TEXT DEFAULT \'[]\'' },
-      { name: 'antecedentsFamiliaux', type: 'TEXT DEFAULT \'[]\'' }
+      { name: 'antecedentsFamiliaux', type: 'TEXT DEFAULT \'[]\'' },
+      { name: 'effetsIndesirables', type: 'TEXT' },
+      { name: 'sousContraceptif', type: 'BOOLEAN DEFAULT false' },
+      { name: 'structureEmission', type: 'TEXT' },
+      { name: 'serviceEmission', type: 'TEXT' },
+      { name: 'medecinPrescripteur', type: 'TEXT' },
+      { name: 'groupeSanguin', type: 'TEXT' },
+      { name: 'assurance', type: 'TEXT' },
+      { name: 'email', type: 'TEXT' },
+      { name: 'numeroSecu', type: 'TEXT' },
+      { name: 'lieuNaissance', type: 'TEXT' },
+      { name: 'nationalite', type: 'TEXT' },
+      { name: 'profession', type: 'TEXT' },
+      { name: 'situationFamiliale', type: 'TEXT' },
+      { name: 'nombreEnfants', type: 'INTEGER DEFAULT 0' },
+      { name: 'medecinTraitant', type: 'TEXT' }
     ];
 
     for (const column of columnsToAdd) {
