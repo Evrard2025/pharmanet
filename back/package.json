@@ -20,6 +20,7 @@
     "sync:db": "node sync-database.js",
     "fix:patients": "node fix-patients-table.js",
     "test:routes": "node test-routes.js",
+    "test:cors": "node test-cors.js",
     "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {

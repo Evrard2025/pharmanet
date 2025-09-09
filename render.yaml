@@ -17,6 +17,8 @@ services:
       - key: JWT_EXPIRES_IN
         value: 24h
       # Configuration CORS - Remplacez par l'URL de votre frontend
+      - key: FRONTEND_URL
+        value: https://test-pharma.netlify.app
       - key: CORS_ORIGIN
         value: https://test-pharma.netlify.app
       # Configuration de sécurité
