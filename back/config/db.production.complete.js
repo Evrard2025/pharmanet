@@ -737,21 +737,15 @@ const connectDB = async () => {
       'Medicament', 'Prescription', 'PrescriptionMedicament', 'SurveillanceBiologique'
     ]);
     
-    // Si aucune table n'existe, forcer la création
-    if (tables.length === 0) {
-      console.log('🔄 Aucune table trouvée, création de toutes les tables...');
-      await sequelize.sync({ force: true });
-      console.log('✅ Toutes les tables ont été créées.');
-      
-      // Vérifier que les tables ont été créées
-      const newTables = await sequelize.getQueryInterface().showAllTables();
-      console.log('📋 Tables créées:', newTables);
-      console.log('📊 Nombre de tables créées:', newTables.length);
-    } else {
-      console.log('🔄 Tables existantes, synchronisation en mode alter...');
-      await sequelize.sync({ force: false, alter: true });
-      console.log('✅ Modèles synchronisés avec la base de données production.');
-    }
+    // Toujours forcer la recréation des tables pour éviter les conflits
+    console.log('🔄 Recréation de toutes les tables pour éviter les conflits...');
+    await sequelize.sync({ force: true });
+    console.log('✅ Toutes les tables ont été recréées.');
+    
+    // Vérifier que les tables ont été créées
+    const newTables = await sequelize.getQueryInterface().showAllTables();
+    console.log('📋 Tables créées:', newTables);
+    console.log('📊 Nombre de tables créées:', newTables.length);
   } catch (error) {
     console.error('❌ Erreur de connexion PostgreSQL production:', error.message);
     
