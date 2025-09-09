@@ -825,6 +825,27 @@ const connectDB = async () => {
     const tables = await sequelize.getQueryInterface().showAllTables();
     console.log('📋 Tables existantes:', tables);
     
+    // Vérifier spécifiquement la table patients
+    if (tables.includes('patients')) {
+      try {
+        // Tester si la colonne traitementsChroniques existe
+        await sequelize.query('SELECT "traitementsChroniques" FROM "patients" LIMIT 1');
+        console.log('✅ Table patients a la structure correcte');
+      } catch (error) {
+        if (error.message.includes('traitementsChroniques') && error.message.includes('does not exist')) {
+          console.log('🔧 Table patients a une structure obsolète, correction...');
+          // Supprimer et recréer la table patients
+          await sequelize.getQueryInterface().dropTable('patients');
+          console.log('🗑️ Table patients supprimée');
+          // Recréer avec la nouvelle structure
+          await Patient.sync({ force: true });
+          console.log('✅ Table patients recréée avec la nouvelle structure');
+        } else {
+          throw error;
+        }
+      }
+    }
+
     // Synchronisation en mode alter pour éviter de perdre les données
     if (tables.length > 0) {
       console.log('🔄 Tables existantes, synchronisation en mode alter...');
