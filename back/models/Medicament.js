@@ -78,8 +78,8 @@ const Medicament = sequelize.define('Medicament', {
     comment: 'Fréquence de surveillance en mois (défaut: 3)'
   },
   parametresSurveillance: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
     comment: 'Paramètres à surveiller (ex: ["ASAT", "ALAT", "Créatinine"])'
   },
   statut: {

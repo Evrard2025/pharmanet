@@ -30,8 +30,9 @@ const SurveillanceBiologique = sequelize.define('SurveillanceBiologique', {
     comment: 'Type de surveillance biologique'
   },
   parametres: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
+    type: DataTypes.TEXT,
     allowNull: false,
+    defaultValue: '[]',
     comment: 'Paramètres biologiques à surveiller'
   },
   frequenceMois: {

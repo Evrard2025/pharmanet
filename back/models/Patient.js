@@ -40,12 +40,12 @@ const Patient = sequelize.define('Patient', {
     allowNull: true
   },
   traitementsChroniques: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: []
+    type: DataTypes.TEXT,
+    defaultValue: '[]'
   },
   traitementsPonctuels: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: []
+    type: DataTypes.TEXT,
+    defaultValue: '[]'
   },
   effetsIndesirables: {
     type: DataTypes.TEXT,
@@ -112,22 +112,22 @@ const Patient = sequelize.define('Patient', {
     field: 'nombreenfants'
   },
   allergies: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: []
+    type: DataTypes.TEXT,
+    defaultValue: '[]'
   },
   antecedentsMedicaux: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
     field: 'antecedentsmedicaux'
   },
   antecedentsChirurgicaux: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
     field: 'antecedentschirurgicaux'
   },
   antecedentsFamiliaux: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: [],
+    type: DataTypes.TEXT,
+    defaultValue: '[]',
     field: 'antecedentsfamiliaux'
   },
   medecinTraitant: {
