@@ -59,32 +59,12 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
-app.use('/api/patients', require('./routes/patients'));
-app.use('/api/medicaments', require('./routes/medicaments'));
-app.use('/api/prescriptions', require('./routes/prescriptions'));
-app.use('/api/consultations', require('./routes/consultations'));
-app.use('/api/surveillance-biologique', require('./routes/surveillance-biologique'));
-app.use('/api/dashboard', require('./routes/dashboard'));
-app.use('/api/loyalty', require('./routes/loyalty'));
-app.use('/api/admin-users', require('./routes/admin-users'));
-
 // Route de test
 app.get('/', (req, res) => {
   res.json({ 
     message: 'PharmaNet API - Backend opérationnel',
     version: '1.0.0',
     timestamp: new Date().toISOString()
-  });
-});
-
-// Gestion des routes non trouvées
-app.use('*', (req, res) => {
-  res.status(404).json({ 
-    message: 'Route non trouvée',
-    path: req.originalUrl
   });
 });
 
@@ -184,10 +164,43 @@ const connectDB = async () => {
   }
 };
 
+// Fonction pour charger les routes
+const loadRoutes = () => {
+  try {
+    console.log('🔄 Chargement des routes...');
+    
+    // Routes
+    app.use('/api/auth', require('./routes/auth'));
+    app.use('/api/users', require('./routes/users'));
+    app.use('/api/patients', require('./routes/patients'));
+    app.use('/api/medicaments', require('./routes/medicaments'));
+    app.use('/api/prescriptions', require('./routes/prescriptions'));
+    app.use('/api/consultations', require('./routes/consultations'));
+    app.use('/api/surveillance-biologique', require('./routes/surveillance-biologique'));
+    app.use('/api/dashboard', require('./routes/dashboard'));
+    app.use('/api/loyalty', require('./routes/loyalty'));
+    app.use('/api/admin-users', require('./routes/admin-users'));
+
+    // Gestion des routes non trouvées
+    app.use('*', (req, res) => {
+      res.status(404).json({ 
+        message: 'Route non trouvée',
+        path: req.originalUrl
+      });
+    });
+    
+    console.log('✅ Routes chargées avec succès');
+  } catch (error) {
+    console.error('❌ Erreur lors du chargement des routes:', error);
+    throw error;
+  }
+};
+
 // Démarrage du serveur
 const startServer = async () => {
   try {
     await connectDB();
+    loadRoutes();
     
     app.listen(PORT, () => {
       console.log(`🌐 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
