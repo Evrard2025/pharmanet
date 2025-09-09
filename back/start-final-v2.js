@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { Sequelize, DataTypes } = require('sequelize');
 
 // Forcer SSL pour toutes les connexions PostgreSQL
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
@@ -10,37 +9,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuration de la base de données
-const dbName = process.env.DB_NAME || 'pharmacie',
-  dbUser = process.env.DB_USER || 'postgres',
-  dbPassword = process.env.DB_PASSWORD || '2023',
-  dbHost = process.env.DB_HOST || 'localhost',
-  dbPort = process.env.DB_PORT || 5432;
-
-// Configuration SSL pour Aiven (si en production)
-const sslConfig = process.env.NODE_ENV === 'production' ? {
-  require: true,
-  rejectUnauthorized: false
-} : false;
-
-const sequelize = new Sequelize(
-  dbName,
-  dbUser,
-  dbPassword,
-  {
-    host: dbHost,
-    port: dbPort,
-    dialect: 'postgres',
-    logging: console.log,
-    dialectOptions: sslConfig ? { ssl: sslConfig } : {},
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    }
-  }
-);
+// Utiliser la même instance Sequelize que les modèles
+const { sequelize } = require('./config/db');
 
 // Configuration pour Render (proxy)
 app.set('trust proxy', 1);
@@ -216,11 +186,6 @@ const connectDB = async () => {
   try {
     console.log('🔧 Configuration Aiven détectée');
     console.log('Tentative de connexion à PostgreSQL avec SSL...');
-    console.log('Host:', dbHost);
-    console.log('Port:', dbPort);
-    console.log('Database:', dbName);
-    console.log('User:', dbUser);
-    console.log('SSL Config:', sslConfig);
     
     // Test de connexion
     await sequelize.authenticate();
@@ -238,14 +203,14 @@ const connectDB = async () => {
     // Corriger le schéma Aiven (convertir ARRAY vers TEXT)
     await fixAivenSchema();
     
-    // Importer tous les modèles pour s'assurer qu'ils sont chargés
+    // Charger tous les modèles
     console.log('📋 Chargement des modèles...');
-    const User = require('./models/User');
-    const Patient = require('./models/Patient');
-    const Medicament = require('./models/Medicament');
-    const Prescription = require('./models/Prescription');
-    const Consultation = require('./models/Consultation');
-    const SurveillanceBiologique = require('./models/SurveillanceBiologique');
+    require('./models/User');
+    require('./models/Patient');
+    require('./models/Medicament');
+    require('./models/Prescription');
+    require('./models/Consultation');
+    require('./models/SurveillanceBiologique');
     console.log('✅ Modèles chargés');
 
     // Synchronisation en mode alter pour éviter de perdre les données

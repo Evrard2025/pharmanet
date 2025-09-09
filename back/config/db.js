@@ -42,9 +42,8 @@ const connectDB = async () => {
     // Importer les modèles pour définir les associations
     require('../models/index');
     
-    // Synchroniser les modèles avec la base de données (force: false pour éviter les conflits)
-    await sequelize.sync({ force: false, alter: false });
-    console.log('Modèles synchronisés avec la base de données.');
+    // Ne pas synchroniser automatiquement - laisser start-final-v2.js gérer cela
+    console.log('Modèles chargés, synchronisation gérée par start-final-v2.js');
   } catch (error) {
     console.error('Erreur de connexion PostgreSQL:', error);
     process.exit(1);
