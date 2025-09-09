@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "start:prod": "node start-production.js",
-    "start:render": "node start-render.js",
+    "start:render": "node start-simple.js",
     "dev": "nodemon server.js",
     "test": "jest",
     "db:migrate": "sequelize-cli db:migrate",
