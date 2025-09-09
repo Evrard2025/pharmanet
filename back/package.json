@@ -24,6 +24,7 @@
     "debug:tables": "node debug-table-creation.js",
     "fix:local-db": "node fix-local-db-schema.js",
     "fix:aiven-db": "node fix-aiven-db-schema.js",
+    "test:models": "node test-models-loading.js",
     "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {

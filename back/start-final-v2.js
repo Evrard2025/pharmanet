@@ -84,6 +84,13 @@ const fixAivenSchema = async () => {
   try {
     console.log('🔧 Correction du schéma Aiven (ARRAY → TEXT)...');
     
+    // Vérifier si la table patients existe
+    const tables = await sequelize.getQueryInterface().showAllTables();
+    if (!tables.includes('patients')) {
+      console.log('📋 Aucune table à corriger, la base de données est vide');
+      return;
+    }
+    
     // Vérifier la structure actuelle de la table patients
     const tableDescription = await sequelize.getQueryInterface().describeTable('patients');
     
@@ -231,6 +238,16 @@ const connectDB = async () => {
     // Corriger le schéma Aiven (convertir ARRAY vers TEXT)
     await fixAivenSchema();
     
+    // Importer tous les modèles pour s'assurer qu'ils sont chargés
+    console.log('📋 Chargement des modèles...');
+    const User = require('./models/User');
+    const Patient = require('./models/Patient');
+    const Medicament = require('./models/Medicament');
+    const Prescription = require('./models/Prescription');
+    const Consultation = require('./models/Consultation');
+    const SurveillanceBiologique = require('./models/SurveillanceBiologique');
+    console.log('✅ Modèles chargés');
+
     // Synchronisation en mode alter pour éviter de perdre les données
     if (tables.length > 0) {
       console.log('🔄 Tables existantes, synchronisation en mode alter...');
@@ -238,16 +255,6 @@ const connectDB = async () => {
       console.log('✅ Tables mises à jour avec succès.');
     } else {
       console.log('🔄 Aucune table trouvée, création de toutes les tables...');
-      
-      // Importer tous les modèles pour s'assurer qu'ils sont chargés
-      console.log('📋 Chargement des modèles...');
-      require('./models/User');
-      require('./models/Patient');
-      require('./models/Medicament');
-      require('./models/Prescription');
-      require('./models/Consultation');
-      require('./models/SurveillanceBiologique');
-      console.log('✅ Modèles chargés');
       
       // Créer toutes les tables
       await sequelize.sync({ force: true });
