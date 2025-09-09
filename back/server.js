@@ -52,7 +52,7 @@ app.use('/api/loyalty', require('./routes/loyalty'));
 
 // Routes pour le suivi pharmaceutique
 app.use('/api/patients', require('./routes/patients'));
-app.use('/api/consultations', require('./routes/consultations').router);
+app.use('/api/consultations', require('./routes/consultations'));
 app.use('/api/medicaments', require('./routes/medicaments'));
 app.use('/api/surveillance-biologique', require('./routes/surveillance-biologique'));
 app.use('/api/admin/users', require('./routes/admin-users'));

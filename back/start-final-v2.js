@@ -163,7 +163,19 @@ const connectDB = async () => {
       console.log('✅ Tables mises à jour avec succès.');
     } else {
       console.log('🔄 Aucune table trouvée, création de toutes les tables...');
-      await sequelize.sync({ force: false });
+      
+      // Importer tous les modèles pour s'assurer qu'ils sont chargés
+      console.log('📋 Chargement des modèles...');
+      require('./models/User');
+      require('./models/Patient');
+      require('./models/Medicament');
+      require('./models/Prescription');
+      require('./models/Consultation');
+      require('./models/SurveillanceBiologique');
+      console.log('✅ Modèles chargés');
+      
+      // Créer toutes les tables
+      await sequelize.sync({ force: true });
       console.log('✅ Toutes les tables ont été créées.');
     }
     

@@ -21,6 +21,8 @@
     "fix:patients": "node fix-patients-table.js",
     "test:routes": "node test-routes.js",
     "test:cors": "node test-cors.js",
+    "debug:tables": "node debug-table-creation.js",
+    "fix:local-db": "node fix-local-db-schema.js",
     "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {

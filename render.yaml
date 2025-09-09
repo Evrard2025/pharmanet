@@ -31,15 +31,14 @@ services:
       # Logs
       - key: MORGAN_FORMAT
         value: combined
-
-  - type: pserv
-    name: pharmanet-database
-    env: postgresql
-    plan: free
-    envVars:
-      - key: POSTGRES_DB
-        value: pharmanet
-      - key: POSTGRES_USER
-        value: pharmanet_user
-      - key: POSTGRES_PASSWORD
-        generateValue: true
+      # Configuration Aiven PostgreSQL
+      - key: DB_HOST
+        value: pha-evrardk0197-ca69.k.aivencloud.com
+      - key: DB_PORT
+        value: 28221
+      - key: DB_NAME
+        value: defaultdb
+      - key: DB_USER
+        value: avnadmin
+      - key: DB_PASSWORD
+        fromSecret: true

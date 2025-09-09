@@ -33,7 +33,18 @@ const SurveillanceBiologique = sequelize.define('SurveillanceBiologique', {
     type: DataTypes.TEXT,
     allowNull: false,
     defaultValue: '[]',
-    comment: 'Paramètres biologiques à surveiller'
+    comment: 'Paramètres biologiques à surveiller',
+    get() {
+      const value = this.getDataValue('parametres');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('parametres', JSON.stringify(value || []));
+    }
   },
   frequenceMois: {
     type: DataTypes.INTEGER,

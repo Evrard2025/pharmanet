@@ -41,11 +41,33 @@ const Patient = sequelize.define('Patient', {
   },
   traitementsChroniques: {
     type: DataTypes.TEXT,
-    defaultValue: '[]'
+    defaultValue: '[]',
+    get() {
+      const value = this.getDataValue('traitementsChroniques');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('traitementsChroniques', JSON.stringify(value || []));
+    }
   },
   traitementsPonctuels: {
     type: DataTypes.TEXT,
-    defaultValue: '[]'
+    defaultValue: '[]',
+    get() {
+      const value = this.getDataValue('traitementsPonctuels');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('traitementsPonctuels', JSON.stringify(value || []));
+    }
   },
   effetsIndesirables: {
     type: DataTypes.TEXT,
@@ -113,22 +135,66 @@ const Patient = sequelize.define('Patient', {
   },
   allergies: {
     type: DataTypes.TEXT,
-    defaultValue: '[]'
+    defaultValue: '[]',
+    get() {
+      const value = this.getDataValue('allergies');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('allergies', JSON.stringify(value || []));
+    }
   },
   antecedentsMedicaux: {
     type: DataTypes.TEXT,
     defaultValue: '[]',
-    field: 'antecedentsmedicaux'
+    field: 'antecedentsmedicaux',
+    get() {
+      const value = this.getDataValue('antecedentsMedicaux');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('antecedentsMedicaux', JSON.stringify(value || []));
+    }
   },
   antecedentsChirurgicaux: {
     type: DataTypes.TEXT,
     defaultValue: '[]',
-    field: 'antecedentschirurgicaux'
+    field: 'antecedentschirurgicaux',
+    get() {
+      const value = this.getDataValue('antecedentsChirurgicaux');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('antecedentsChirurgicaux', JSON.stringify(value || []));
+    }
   },
   antecedentsFamiliaux: {
     type: DataTypes.TEXT,
     defaultValue: '[]',
-    field: 'antecedentsfamiliaux'
+    field: 'antecedentsfamiliaux',
+    get() {
+      const value = this.getDataValue('antecedentsFamiliaux');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('antecedentsFamiliaux', JSON.stringify(value || []));
+    }
   },
   medecinTraitant: {
     type: DataTypes.STRING(150),

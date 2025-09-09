@@ -80,7 +80,18 @@ const Medicament = sequelize.define('Medicament', {
   parametresSurveillance: {
     type: DataTypes.TEXT,
     defaultValue: '[]',
-    comment: 'Paramètres à surveiller (ex: ["ASAT", "ALAT", "Créatinine"])'
+    comment: 'Paramètres à surveiller (ex: ["ASAT", "ALAT", "Créatinine"])',
+    get() {
+      const value = this.getDataValue('parametresSurveillance');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('parametresSurveillance', JSON.stringify(value || []));
+    }
   },
   statut: {
     type: DataTypes.ENUM('actif', 'inactif', 'retire'),
