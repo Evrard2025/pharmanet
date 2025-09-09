@@ -396,8 +396,4 @@ router.delete('/:id/medicaments/:medicamentId', protect, authorize('admin', 'pha
   }
 });
 
-module.exports = {
-  router,
-  generateNextConsultationNumber,
-  generateUniqueConsultationNumber
-};
+module.exports = router;
