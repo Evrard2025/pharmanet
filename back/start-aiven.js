@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Script de démarrage simple pour Render
- * Résout le problème de colonnes manquantes
+ * Script de démarrage optimisé pour Aiven PostgreSQL
+ * Configuration SSL corrigée
  */
 
 // Définir l'environnement de production
@@ -18,53 +18,32 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const { Sequelize, DataTypes } = require('sequelize');
 
-// Configuration de la base de données
-let sequelize;
+// Configuration de la base de données Aiven
+const dbName = process.env.DB_NAME || 'defaultdb',
+  dbUser = process.env.DB_USER || 'avnadmin',
+  dbPassword = process.env.DB_PASSWORD || 'YOUR_AIVEN_PASSWORD_HERE',
+  dbHost = process.env.DB_HOST || 'YOUR_AIVEN_HOST_HERE',
+  dbPort = process.env.DB_PORT || 28221;
 
-if (process.env.DATABASE_URL) {
-  // Configuration pour Render avec DATABASE_URL
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect: 'postgres',
-    protocol: 'postgres',
-    logging: false,
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false
-      }
-    },
-    define: {
-      timestamps: true,
-      underscored: false
-    }
-  });
-} else {
-  // Configuration de fallback pour Aiven
-  const dbName = process.env.DB_NAME || 'defaultdb',
-    dbUser = process.env.DB_USER || 'avnadmin',
-    dbPassword = process.env.DB_PASSWORD || 'YOUR_AIVEN_PASSWORD_HERE',
-    dbHost = process.env.DB_HOST || 'YOUR_AIVEN_HOST_HERE',
-    dbPort = process.env.DB_PORT || 28221;
+// Configuration SSL corrigée pour Aiven
+const sslConfig = {
+  require: true,
+  rejectUnauthorized: false
+};
 
-  const sslConfig = {
-    require: true,
-    rejectUnauthorized: false
-  };
-
-  sequelize = new Sequelize(dbName, dbUser, dbPassword, {
-    host: dbHost,
-    port: dbPort,
-    dialect: 'postgres',
-    logging: false,
-    dialectOptions: {
-      ssl: sslConfig
-    },
-    define: {
-      timestamps: true,
-      underscored: false
-    }
-  });
-}
+const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
+  host: dbHost,
+  port: dbPort,
+  dialect: 'postgres',
+  logging: false,
+  dialectOptions: {
+    ssl: sslConfig
+  },
+  define: {
+    timestamps: true,
+    underscored: false
+  }
+});
 
 // Définir les modèles avec la structure correcte
 const User = sequelize.define('User', {
@@ -776,7 +755,7 @@ app.get('/', (req, res) => {
     message: 'API Pharmacie Fidélité - Production',
     version: '1.0.0',
     environment: 'production',
-    platform: 'Render'
+    platform: 'Render + Aiven'
   });
 });
 
@@ -811,17 +790,13 @@ app.use('*', (req, res) => {
 // Fonction de connexion à la base de données
 const connectDB = async () => {
   try {
-    console.log('🔧 Configuration Render détectée');
-    console.log('Tentative de connexion à PostgreSQL...');
-    
-    if (process.env.DATABASE_URL) {
-      console.log('📊 Utilisation de DATABASE_URL (Render)');
-    } else {
-      console.log('📊 Utilisation de la configuration Aiven');
-      console.log('Host:', process.env.DB_HOST);
-      console.log('Port:', process.env.DB_PORT);
-      console.log('Database:', process.env.DB_NAME);
-    }
+    console.log('🔧 Configuration Aiven détectée');
+    console.log('Tentative de connexion à PostgreSQL avec SSL...');
+    console.log('Host:', dbHost);
+    console.log('Port:', dbPort);
+    console.log('Database:', dbName);
+    console.log('User:', dbUser);
+    console.log('SSL Config:', sslConfig);
     
     // Test de connexion
     await sequelize.authenticate();
@@ -856,6 +831,9 @@ const connectDB = async () => {
     } else if (error.message.includes('self-signed certificate')) {
       console.error('🔍 Diagnostic: Certificat SSL auto-signé');
       console.error('💡 Solution: Configuration SSL permissive appliquée');
+    } else if (error.message.includes('checkServerIdentity')) {
+      console.error('🔍 Diagnostic: Configuration SSL incorrecte');
+      console.error('💡 Solution: checkServerIdentity supprimé de la configuration');
     }
     
     throw error;
@@ -868,7 +846,7 @@ connectDB().then(() => {
     console.log(`🚀 Serveur PharmaNet démarré sur le port ${PORT}`);
     console.log(`📊 Environnement: ${process.env.NODE_ENV}`);
     console.log(`🌐 URL: https://your-app-name.onrender.com`);
-    console.log(`🗄️  Base de données: ${process.env.DATABASE_URL ? 'Render PostgreSQL' : 'Aiven PostgreSQL'}`);
+    console.log(`🗄️  Base de données: Aiven PostgreSQL`);
   });
 }).catch(err => {
   console.error('❌ Erreur de démarrage:', err);
