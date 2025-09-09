@@ -79,6 +79,78 @@ app.get('/', (req, res) => {
   });
 });
 
+// Fonction pour corriger le schéma Aiven (convertir ARRAY vers TEXT)
+const fixAivenSchema = async () => {
+  try {
+    console.log('🔧 Correction du schéma Aiven (ARRAY → TEXT)...');
+    
+    // Vérifier la structure actuelle de la table patients
+    const tableDescription = await sequelize.getQueryInterface().describeTable('patients');
+    
+    // Colonnes à convertir de ARRAY vers TEXT
+    const columnsToConvert = [
+      'traitementsChroniques',
+      'traitementsPonctuels',
+      'allergies',
+      'antecedentsmedicaux',
+      'antecedentschirurgicaux',
+      'antecedentsfamiliaux'
+    ];
+
+    for (const columnName of columnsToConvert) {
+      try {
+        const columnInfo = tableDescription[columnName];
+        if (columnInfo && columnInfo.type === 'ARRAY') {
+          console.log(`🔧 Conversion de la colonne ${columnName} de ARRAY vers TEXT...`);
+          
+          // Supprimer la colonne existante
+          await sequelize.query(`ALTER TABLE "patients" DROP COLUMN IF EXISTS "${columnName}";`);
+          console.log(`✅ Colonne ${columnName} supprimée`);
+          
+          // Ajouter la colonne avec le bon type
+          await sequelize.query(`ALTER TABLE "patients" ADD COLUMN "${columnName}" TEXT DEFAULT '[]';`);
+          console.log(`✅ Colonne ${columnName} ajoutée avec le type TEXT`);
+        } else if (columnInfo && columnInfo.type === 'TEXT') {
+          console.log(`✅ Colonne ${columnName} est déjà de type TEXT`);
+        }
+      } catch (error) {
+        console.log(`⚠️ Erreur lors de la conversion de ${columnName}:`, error.message);
+      }
+    }
+
+    // Corriger surveillance_biologique
+    try {
+      const surveillanceDesc = await sequelize.getQueryInterface().describeTable('surveillance_biologique');
+      if (surveillanceDesc.parametres && surveillanceDesc.parametres.type === 'ARRAY') {
+        console.log('🔧 Conversion de la colonne parametres dans surveillance_biologique...');
+        await sequelize.query(`ALTER TABLE "surveillance_biologique" DROP COLUMN IF EXISTS "parametres";`);
+        await sequelize.query(`ALTER TABLE "surveillance_biologique" ADD COLUMN "parametres" TEXT DEFAULT '[]';`);
+        console.log('✅ Colonne parametres corrigée dans surveillance_biologique');
+      }
+    } catch (error) {
+      console.log('⚠️ Erreur lors de la correction de surveillance_biologique:', error.message);
+    }
+
+    // Corriger medicaments
+    try {
+      const medicamentsDesc = await sequelize.getQueryInterface().describeTable('medicaments');
+      if (medicamentsDesc.parametresSurveillance && medicamentsDesc.parametresSurveillance.type === 'ARRAY') {
+        console.log('🔧 Conversion de la colonne parametresSurveillance dans medicaments...');
+        await sequelize.query(`ALTER TABLE "medicaments" DROP COLUMN IF EXISTS "parametresSurveillance";`);
+        await sequelize.query(`ALTER TABLE "medicaments" ADD COLUMN "parametresSurveillance" TEXT DEFAULT '[]';`);
+        console.log('✅ Colonne parametresSurveillance corrigée dans medicaments');
+      }
+    } catch (error) {
+      console.log('⚠️ Erreur lors de la correction de medicaments:', error.message);
+    }
+
+    console.log('✅ Schéma Aiven corrigé avec succès');
+  } catch (error) {
+    console.error('❌ Erreur lors de la correction du schéma Aiven:', error.message);
+    // Ne pas faire échouer le démarrage pour cette erreur
+  }
+};
+
 // Fonction pour ajouter les colonnes manquantes à la table patients
 const addMissingColumnsToPatients = async () => {
   try {
@@ -155,6 +227,9 @@ const connectDB = async () => {
     if (tables.includes('patients')) {
       await addMissingColumnsToPatients();
     }
+
+    // Corriger le schéma Aiven (convertir ARRAY vers TEXT)
+    await fixAivenSchema();
     
     // Synchronisation en mode alter pour éviter de perdre les données
     if (tables.length > 0) {
