@@ -834,12 +834,36 @@ const connectDB = async () => {
       } catch (error) {
         if (error.message.includes('traitementsChroniques') && error.message.includes('does not exist')) {
           console.log('🔧 Table patients a une structure obsolète, correction...');
+          
+          // Supprimer les contraintes de clé étrangère d'abord
+          console.log('🔧 Suppression des contraintes de clé étrangère...');
+          try {
+            await sequelize.query('ALTER TABLE consultations DROP CONSTRAINT IF EXISTS consultations_patientId_fkey;');
+            await sequelize.query('ALTER TABLE prescriptions DROP CONSTRAINT IF EXISTS prescriptions_patientId_fkey;');
+            await sequelize.query('ALTER TABLE surveillance_biologique DROP CONSTRAINT IF EXISTS surveillance_biologique_patientId_fkey;');
+            console.log('✅ Contraintes supprimées');
+          } catch (constraintError) {
+            console.log('⚠️ Erreur lors de la suppression des contraintes (peut être normal):', constraintError.message);
+          }
+          
           // Supprimer et recréer la table patients
-          await sequelize.getQueryInterface().dropTable('patients');
+          await sequelize.getQueryInterface().dropTable('patients', { cascade: true });
           console.log('🗑️ Table patients supprimée');
+          
           // Recréer avec la nouvelle structure
           await Patient.sync({ force: true });
           console.log('✅ Table patients recréée avec la nouvelle structure');
+          
+          // Recréer les contraintes de clé étrangère
+          console.log('🔧 Recréation des contraintes de clé étrangère...');
+          try {
+            await sequelize.query('ALTER TABLE consultations ADD CONSTRAINT consultations_patientId_fkey FOREIGN KEY ("patientId") REFERENCES patients(id) ON DELETE CASCADE;');
+            await sequelize.query('ALTER TABLE prescriptions ADD CONSTRAINT prescriptions_patientId_fkey FOREIGN KEY ("patientId") REFERENCES patients(id) ON DELETE CASCADE;');
+            await sequelize.query('ALTER TABLE surveillance_biologique ADD CONSTRAINT surveillance_biologique_patientId_fkey FOREIGN KEY ("patientId") REFERENCES patients(id) ON DELETE CASCADE;');
+            console.log('✅ Contraintes recréées');
+          } catch (constraintError) {
+            console.log('⚠️ Erreur lors de la recréation des contraintes:', constraintError.message);
+          }
         } else {
           throw error;
         }
