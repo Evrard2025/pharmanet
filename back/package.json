@@ -7,6 +7,7 @@
     "start": "node server.js",
     "start:prod": "node start-production.js",
     "start:render": "node start-final-v2.js",
+    "start:render:safe": "node start-render-safe.js",
     "dev": "nodemon server.js",
     "test": "jest",
     "db:migrate": "sequelize-cli db:migrate",

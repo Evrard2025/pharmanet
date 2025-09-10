@@ -213,11 +213,17 @@ const connectDB = async () => {
     require('./models/SurveillanceBiologique');
     console.log('✅ Modèles chargés');
 
-    // Synchronisation en mode alter pour éviter de perdre les données
+    // Synchronisation en mode safe pour éviter les erreurs SQL
     if (tables.length > 0) {
-      console.log('🔄 Tables existantes, synchronisation en mode alter...');
-      await sequelize.sync({ alter: true });
-      console.log('✅ Tables mises à jour avec succès.');
+      console.log('🔄 Tables existantes, synchronisation en mode safe...');
+      try {
+        // Utiliser sync sans alter pour éviter les erreurs SQL
+        await sequelize.sync({ force: false });
+        console.log('✅ Tables vérifiées avec succès.');
+      } catch (syncError) {
+        console.log('⚠️ Erreur de synchronisation, mais les tables existent:', syncError.message);
+        console.log('✅ Continuation avec les tables existantes...');
+      }
     } else {
       console.log('🔄 Aucune table trouvée, création de toutes les tables...');
       
