@@ -7,12 +7,6 @@ import {
   Edit, 
   Trash2, 
   User, 
-  Mail, 
-  Phone, 
-  Shield, 
-  Award,
-  Filter,
-  MoreVertical,
   CheckCircle,
   XCircle
 } from 'lucide-react';
