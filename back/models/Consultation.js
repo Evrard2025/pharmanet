@@ -166,9 +166,12 @@ const ConsultationMedicament = sequelize.define('ConsultationMedicament', {
     comment: 'Effets indésirables signalés par le patient'
   },
   observance: {
-    type: DataTypes.ENUM('bonne', 'moyenne', 'mauvaise'),
+    type: DataTypes.STRING(20),
     allowNull: true,
-    comment: 'Observance du traitement'
+    comment: 'Observance du traitement (bonne, moyenne, mauvaise)',
+    validate: {
+      isIn: [['bonne', 'moyenne', 'mauvaise']]
+    }
   },
   statut: {
     type: DataTypes.ENUM('en_cours', 'termine', 'arrete'),

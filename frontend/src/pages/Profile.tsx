@@ -7,7 +7,6 @@ import {
   Phone, 
   MapPin, 
   Shield, 
-  Award, 
   Edit3, 
   Save, 
   X,
@@ -119,25 +118,6 @@ const Profile: React.FC = () => {
     }
   };
 
-  const getLoyaltyLevelText = (level: string) => {
-    switch (level) {
-      case 'bronze': return 'Bronze';
-      case 'argent': return 'Argent';
-      case 'or': return 'Or';
-      case 'platine': return 'Platine';
-      default: return 'Non défini';
-    }
-  };
-
-  const getLoyaltyLevelColor = (level: string) => {
-    switch (level) {
-      case 'bronze': return 'bg-amber-100 text-amber-800';
-      case 'argent': return 'bg-gray-100 text-gray-800';
-      case 'or': return 'bg-yellow-100 text-yellow-800';
-      case 'platine': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
 
   if (!user) {
     return (
@@ -320,28 +300,6 @@ const Profile: React.FC = () => {
                   </span>
                 </div>
 
-                {user.role === 'client' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Points de fidélité
-                      </label>
-                      <p className="text-gray-900 flex items-center">
-                        <Award className="w-4 h-4 mr-2 text-primary-600" />
-                        {user.loyaltyPoints || 0} points
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Niveau de fidélité
-                      </label>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLoyaltyLevelColor(user.loyaltyLevel || 'bronze')}`}>
-                        {getLoyaltyLevelText(user.loyaltyLevel || 'bronze')}
-                      </span>
-                    </div>
-                  </>
-                )}
               </div>
 
               {/* Changement de mot de passe */}
@@ -474,22 +432,6 @@ const Profile: React.FC = () => {
                     {new Date().getFullYear()}
                   </span>
                 </div>
-                {user.role === 'client' && (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Points actuels</span>
-                      <span className="text-primary-600 font-bold">
-                        {user.loyaltyPoints || 0}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Niveau</span>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getLoyaltyLevelColor(user.loyaltyLevel || 'bronze')}`}>
-                        {getLoyaltyLevelText(user.loyaltyLevel || 'bronze')}
-                      </span>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
 
@@ -499,12 +441,6 @@ const Profile: React.FC = () => {
                 Actions rapides
               </h3>
               <div className="space-y-3">
-                {user.role === 'client' && (
-                  <button className="w-full btn bg-primary-600 text-white hover:bg-primary-700">
-                    <Award className="w-4 h-4 mr-2" />
-                    Voir mon programme de fidélité
-                  </button>
-                )}
                 <button className="w-full btn bg-gray-600 text-white hover:bg-gray-700">
                   <Shield className="w-4 h-4 mr-2" />
                   Paramètres de sécurité

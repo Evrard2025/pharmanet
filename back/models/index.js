@@ -3,6 +3,7 @@ const Patient = require('./Patient');
 const { Consultation, ConsultationMedicament } = require('./Consultation');
 const { Medicament } = require('./Medicament');
 const { SurveillanceBiologique } = require('./SurveillanceBiologique');
+const { Prescription, PrescriptionMedicament } = require('./Prescription');
 
 // Associations simplifiées: les patients ne sont plus liés aux users dans ce modèle minimal
 
@@ -23,11 +24,25 @@ SurveillanceBiologique.belongsTo(Patient, { foreignKey: 'patientId' });
 Medicament.hasMany(SurveillanceBiologique, { foreignKey: 'medicamentId' });
 SurveillanceBiologique.belongsTo(Medicament, { foreignKey: 'medicamentId' });
 
+// Associations Patient - Prescription
+Patient.hasMany(Prescription, { foreignKey: 'patientId' });
+Prescription.belongsTo(Patient, { foreignKey: 'patientId' });
+
+// Associations Prescription - PrescriptionMedicament
+Prescription.hasMany(PrescriptionMedicament, { foreignKey: 'prescriptionId', as: 'medicaments' });
+PrescriptionMedicament.belongsTo(Prescription, { foreignKey: 'prescriptionId' });
+
+// Associations Medicament - PrescriptionMedicament
+Medicament.hasMany(PrescriptionMedicament, { foreignKey: 'medicamentId' });
+PrescriptionMedicament.belongsTo(Medicament, { foreignKey: 'medicamentId', as: 'medicament' });
+
 module.exports = {
   User,
   Patient,
   Consultation,
   ConsultationMedicament,
   Medicament,
-  SurveillanceBiologique
+  SurveillanceBiologique,
+  Prescription,
+  PrescriptionMedicament
 };

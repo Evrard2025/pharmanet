@@ -6,7 +6,6 @@ import {
   LogOut, 
   Menu, 
   X, 
-  Heart,
   Shield,
   Users,
   FileText,
@@ -25,15 +24,6 @@ const Navbar: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  const getLoyaltyBadgeClass = (level: string) => {
-    switch (level) {
-      case 'bronze': return 'badge-bronze';
-      case 'argent': return 'badge-silver';
-      case 'or': return 'badge-gold';
-      case 'platine': return 'badge-platinum';
-      default: return 'badge-primary';
-    }
-  };
 
   return (
     <nav className="bg-white shadow-lg">
@@ -66,11 +56,6 @@ const Navbar: React.FC = () => {
             </Link>
             {isAuthenticated && (
               <>
-                {user?.role === 'client' && (
-                  <Link to="/loyalty" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
-                    Fidélité
-                  </Link>
-                )}
                 {(user?.role === 'admin' || user?.role === 'pharmacien') && (
                   <Link to="/admin" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
                     {user?.role === 'admin' ? 'Administration' : 'Dashboard'}
@@ -94,11 +79,6 @@ const Navbar: React.FC = () => {
                     <span className="hidden sm:block text-sm font-medium">
                       {user?.firstName}
                     </span>
-                    {user?.loyaltyLevel && (
-                      <span className={`badge ${getLoyaltyBadgeClass(user.loyaltyLevel)} hidden sm:inline-block`}>
-                        {user.loyaltyLevel}
-                      </span>
-                    )}
                   </button>
 
                   {/* Dropdown Menu */}
@@ -112,16 +92,6 @@ const Navbar: React.FC = () => {
                         <User className="w-4 h-4 mr-2" />
                         Profil
                       </Link>
-                      {user?.role === 'client' && (
-                        <Link
-                          to="/loyalty"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          <Heart className="w-4 h-4 mr-2" />
-                          Fidélité
-                        </Link>
-                      )}
                       {(user?.role === 'admin' || user?.role === 'pharmacien') && (
                         <>
                           <div className="border-t border-gray-100 my-1"></div>
@@ -240,15 +210,6 @@ const Navbar: React.FC = () => {
             </Link>
             {isAuthenticated && (
               <>
-                {user?.role === 'client' && (
-                  <Link
-                    to="/loyalty"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="text-gray-700 hover:text-primary-600 block px-3 py-2.5 rounded-md text-base font-medium"
-                  >
-                    Fidélité
-                  </Link>
-                )}
                 {(user?.role === 'admin' || user?.role === 'pharmacien') && (
                   <>
                     <Link

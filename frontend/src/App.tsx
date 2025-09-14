@@ -8,15 +8,24 @@ import PrivateRoute from './components/PrivateRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import RegisterPatient from './pages/RegisterPatient';
+import RegisterProfessional from './pages/RegisterProfessional';
+import RegisterChoice from './pages/RegisterChoice';
+import TestAccess from './pages/TestAccess';
+import TestRoleLogin from './pages/TestRoleLogin';
 
 // Pages privées
 import Profile from './pages/Profile';
-import Loyalty from './pages/Loyalty';
+
+// Pages patient
+import PatientSpace from './pages/PatientSpace';
+import MyPrescriptions from './pages/patient/MyPrescriptions';
+import Reminders from './pages/patient/Reminders';
+import MedicalHistory from './pages/patient/MedicalHistory';
 
 // Pages admin/pharmacien
 import Dashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
-import AdminLoyalty from './pages/admin/Loyalty';
 import Patients from './pages/admin/Patients';
 import Consultations from './pages/admin/Consultations';
 import Medicaments from './pages/admin/Medicaments';
@@ -33,16 +42,24 @@ function App() {
             {/* Routes publiques */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<RegisterChoice />} />
+            <Route path="/register-patient" element={<RegisterPatient />} />
+            <Route path="/register-professional" element={<RegisterProfessional />} />
+            <Route path="/test-access" element={<TestAccess />} />
+            <Route path="/test-role-login" element={<TestRoleLogin />} />
 
             {/* Routes privées */}
             <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
-            <Route path="/loyalty" element={<PrivateRoute requiredRole="client"><Loyalty /></PrivateRoute>} />
+
+            {/* Routes patient */}
+            <Route path="/patient" element={<PrivateRoute allowedRoles={['client']}><PatientSpace /></PrivateRoute>} />
+            <Route path="/patient/prescriptions" element={<PrivateRoute allowedRoles={['client']}><MyPrescriptions /></PrivateRoute>} />
+            <Route path="/patient/reminders" element={<PrivateRoute allowedRoles={['client']}><Reminders /></PrivateRoute>} />
+            <Route path="/patient/history" element={<PrivateRoute allowedRoles={['client']}><MedicalHistory /></PrivateRoute>} />
 
             {/* Routes admin/pharmacien */}
             <Route path="/admin" element={<PrivateRoute allowedRoles={['admin', 'pharmacien']}><Dashboard /></PrivateRoute>} />
             <Route path="/admin/users" element={<PrivateRoute allowedRoles={['admin']}><AdminUsers /></PrivateRoute>} />
-            <Route path="/admin/loyalty" element={<PrivateRoute allowedRoles={['admin']}><AdminLoyalty /></PrivateRoute>} />
             
                     {/* Routes spécifiques au métier de pharmacien */}
         <Route path="/admin/patients" element={<PrivateRoute allowedRoles={['admin', 'pharmacien']}><Patients /></PrivateRoute>} />

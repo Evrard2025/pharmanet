@@ -23,7 +23,7 @@ const sequelize = new Sequelize(
     host: dbHost,
     port: dbPort,
     dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: false, // Désactiver les logs SQL pour réduire le bruit
     dialectOptions: sslConfig ? { ssl: sslConfig } : {},
     pool: {
       max: 5,

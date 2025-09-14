@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Détection automatique de l'environnement
 const isProduction = window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1');
-const baseURL = process.env.REACT_APP_API_URL || (isProduction ? 'https://pharmanetws.onrender.com' : 'http://localhost:5001');
+const baseURL = process.env.REACT_APP_API_URL || (isProduction ? 'https://pharmanetws.onrender.com' : 'http://localhost:5000');
 
 // Debug: Afficher l'URL utilisée
 console.log('Environment:', isProduction ? 'Production' : 'Development');

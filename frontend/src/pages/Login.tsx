@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Phone } from 'lucide-react';
 
 interface LoginForm {
-  email: string;
+  identifier: string;
   password: string;
 }
 
@@ -35,7 +35,7 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
     try {
-      await login(data.email, data.password);
+      await login(data.identifier, data.password);
     } catch (error) {
       // L'erreur est gérée dans le contexte d'authentification
     } finally {
@@ -69,30 +69,31 @@ const Login: React.FC = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Adresse email
+              <label htmlFor="identifier" className="block text-sm font-medium text-gray-700">
+                Identifiant de connexion
               </label>
               <div className="mt-1 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  {...register('email', {
-                    required: 'L\'email est requis',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Adresse email invalide',
-                    },
+                  id="identifier"
+                  type="text"
+                  autoComplete="username"
+                  {...register('identifier', {
+                    required: 'Identifiant requis',
                   })}
-                  className={`input pl-10 ${errors.email ? 'border-red-500' : ''}`}
-                  placeholder="votre@email.com"
+                  className={`input pl-10 ${errors.identifier ? 'border-red-500' : ''}`}
+                  placeholder="Email (professionnels) ou Téléphone (patients)"
                 />
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                • <strong>Professionnels :</strong> utilisez votre email
+                <br />
+                • <strong>Patients :</strong> utilisez votre numéro de téléphone
+              </p>
+              {errors.identifier && (
+                <p className="mt-1 text-sm text-red-600">{errors.identifier.message}</p>
               )}
             </div>
 

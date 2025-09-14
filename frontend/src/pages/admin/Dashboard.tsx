@@ -5,7 +5,6 @@ import {
   Users, 
   TrendingUp, 
   Activity,
-  Award,
   Clock,
   FileText,
   Circle
@@ -16,11 +15,6 @@ interface DashboardStats {
   totalUsers: number;
   totalPatients: number;
   totalConsultations: number;
-  loyaltyStats: {
-    totalPoints: number;
-    avgPoints: number;
-    activeUsers: number;
-  };
   recentActivity: Array<{
     id: string;
     type: 'consultation' | 'user';
@@ -50,11 +44,6 @@ const Dashboard: React.FC = () => {
     totalUsers: 0,
     totalPatients: 0,
     totalConsultations: 0,
-    loyaltyStats: {
-      totalPoints: 0,
-      avgPoints: 0,
-      activeUsers: 0
-    },
     recentActivity: [],
     monthlyStats: {
       consultations: 0
@@ -135,48 +124,38 @@ const Dashboard: React.FC = () => {
             <p className="text-sm text-gray-600 mt-1">Accès direct aux fonctionnalités principales</p>
           </div>
           <div className="p-6">
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-               <button 
-                 onClick={() => navigate('/admin/patients')}
-                 className="flex flex-col items-center justify-center p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 group"
-               >
-                 <div className="p-3 bg-blue-100 rounded-full mb-3 group-hover:bg-blue-200 transition-colors">
-                   <Users className="w-6 h-6 text-blue-600" />
-                 </div>
-                 <span className="font-medium text-gray-900">Nouveau Patient</span>
-                 <span className="text-sm text-gray-500 mt-1">Ajouter un patient</span>
-               </button>
-               <button 
-                 onClick={() => navigate('/admin/consultations')}
-                 className="flex flex-col items-center justify-center p-6 border border-gray-300 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 group"
-               >
-                 <div className="p-3 bg-purple-100 rounded-full mb-3 group-hover:bg-purple-200 transition-colors">
-                   <FileText className="w-6 h-6 text-purple-600" />
-                 </div>
-                 <span className="font-medium text-gray-900">Nouvelle Consultation</span>
-                 <span className="text-sm text-gray-500 mt-1">Créer une consultation</span>
-               </button>
-               <button 
-                 onClick={() => navigate('/admin/loyalty')}
-                 className="flex flex-col items-center justify-center p-6 border border-gray-300 rounded-lg hover:bg-green-50 hover:border-green-300 transition-all duration-200 group"
-               >
-                 <div className="p-3 bg-green-100 rounded-full mb-3 group-hover:bg-green-200 transition-colors">
-                   <Award className="w-6 h-6 text-green-600" />
-                 </div>
-                 <span className="font-medium text-gray-900">Gestion Fidélité</span>
-                 <span className="text-sm text-gray-500 mt-1">Gérer les points</span>
-               </button>
-               <button 
-                 onClick={() => navigate('/admin/patients')}
-                 className="flex flex-col items-center justify-center p-6 border border-gray-300 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 group"
-               >
-                 <div className="p-3 bg-orange-100 rounded-full mb-3 group-hover:bg-orange-200 transition-colors">
-                   <Activity className="w-6 h-6 text-orange-600" />
-                 </div>
-                 <span className="font-medium text-gray-900">Voir Patients & Consultations</span>
-                 <span className="text-sm text-gray-500 mt-1">Consulter les fiches</span>
-               </button>
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <button 
+                onClick={() => navigate('/admin/patients')}
+                className="flex flex-col items-center justify-center p-6 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 group"
+              >
+                <div className="p-3 bg-blue-100 rounded-full mb-3 group-hover:bg-blue-200 transition-colors">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+                <span className="font-medium text-gray-900">Nouveau Patient</span>
+                <span className="text-sm text-gray-500 mt-1">Ajouter un patient</span>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/consultations')}
+                className="flex flex-col items-center justify-center p-6 border border-gray-300 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 group"
+              >
+                <div className="p-3 bg-purple-100 rounded-full mb-3 group-hover:bg-purple-200 transition-colors">
+                  <FileText className="w-6 h-6 text-purple-600" />
+                </div>
+                <span className="font-medium text-gray-900">Nouvelle Consultation</span>
+                <span className="text-sm text-gray-500 mt-1">Créer une consultation</span>
+              </button>
+              <button 
+                onClick={() => navigate('/admin/patients')}
+                className="flex flex-col items-center justify-center p-6 border border-gray-300 rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-all duration-200 group"
+              >
+                <div className="p-3 bg-orange-100 rounded-full mb-3 group-hover:bg-orange-200 transition-colors">
+                  <Activity className="w-6 h-6 text-orange-600" />
+                </div>
+                <span className="font-medium text-gray-900">Voir Patients & Consultations</span>
+                <span className="text-sm text-gray-500 mt-1">Consulter les fiches</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -255,15 +234,15 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Loyalty Points */}
+          {/* Patients */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Points Fidélité</p>
-                <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.loyaltyStats.totalPoints)}</p>
+                <p className="text-sm font-medium text-gray-600">Patients</p>
+                <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.totalPatients)}</p>
               </div>
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Award className="w-6 h-6 text-blue-600" />
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Activity className="w-6 h-6 text-green-600" />
               </div>
             </div>
           </div>

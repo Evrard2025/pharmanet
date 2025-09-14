@@ -10,9 +10,9 @@ interface User {
   email: string;
   phone?: string;
   role: 'client' | 'admin' | 'pharmacien';
-  loyaltyPoints?: number;
-  loyaltyLevel?: 'bronze' | 'argent' | 'or' | 'platine';
   address?: string;
+  loyaltyPoints?: number;
+  loyaltyLevel?: 'bronze' | 'silver' | 'gold' | 'platinum';
 }
 
 interface AuthState {
@@ -23,7 +23,7 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   updateProfile: (userData: Partial<User>) => Promise<void>;
@@ -32,11 +32,13 @@ interface AuthContextType extends AuthState {
 interface RegisterData {
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   password: string;
   phone: string;
-  officine: string;
-  ville: string;
+  address?: string;
+  officine?: string;
+  ville?: string;
+  role?: 'client' | 'pharmacien';
 }
 
 type AuthAction =
@@ -131,10 +133,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: string, password: string) => {
     dispatch({ type: 'AUTH_START' });
     try {
-      const response = await api.post('/api/auth/login', { email, password });
+      const response = await api.post('/api/auth/login', { identifier, password });
       const { user, token } = response.data;
       
       localStorage.setItem('token', token);
@@ -165,8 +167,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const requestData = {
         ...userData,
-        role: 'pharmacien',
-        address: `${userData.officine}, ${userData.ville}`
+        role: userData.role || 'client',
+        address: userData.address || (userData.officine && userData.ville ? `${userData.officine}, ${userData.ville}` : undefined)
       };
       
       const response = await api.post('/api/auth/register', requestData);
@@ -180,10 +182,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         payload: { user, token },
       });
       
-      toast.success('Inscription de pharmacien réussie !');
-      if (user.role === 'pharmacien') {
-        navigate('/admin');
-      } else if (user.role === 'admin') {
+      const roleMessage = user.role === 'pharmacien' ? 'pharmacien' : 'patient';
+      toast.success(`Inscription ${roleMessage} réussie !`);
+      
+      if (user.role === 'pharmacien' || user.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/');

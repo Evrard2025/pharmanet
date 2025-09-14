@@ -24,10 +24,18 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole, all
   }
 
   if (requiredRole && user?.role !== requiredRole) {
+    // Redirection basée sur le rôle de l'utilisateur
+    if (user?.role === 'pharmacien' || user?.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user?.role || '')) {
+    // Redirection basée sur le rôle de l'utilisateur
+    if (user?.role === 'pharmacien' || user?.role === 'admin') {
+      return <Navigate to="/admin" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 

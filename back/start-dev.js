@@ -1,31 +1,50 @@
+#!/usr/bin/env node
+
+/**
+ * Script de démarrage pour le développement local
+ * Configuration optimisée pour localhost
+ */
+
+// Charger les variables d'environnement
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const { connectDB, sequelize } = require('./config/db');
-require('dotenv').config();
+
+// Désactiver les logs SQL de Sequelize pour réduire le bruit
+sequelize.options.logging = false;
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000; // Forcer le port 5000 pour le développement
 
 // Trust proxy for rate limiting
 app.set('trust proxy', 1);
 
-// Middleware de sécurité
-app.use(helmet());
-// CORS configuration
+// Middleware de sécurité (moins strict pour le développement)
+app.use(helmet({
+  contentSecurityPolicy: false // Désactiver CSP pour le développement
+}));
+
+// CORS configuration pour le développement
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // Permettre toutes les origines en développement
+    if (!origin || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
     
-    const allowedOrigins = process.env.CORS_ORIGIN 
-      ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-      : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'];
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001', 
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001'
+    ];
     
     console.log('CORS Origin requested:', origin);
-    console.log('Allowed origins:', allowedOrigins);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -42,12 +61,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('combined'));
+app.use(morgan('dev')); // Logging plus détaillé pour le développement
 
-// Rate limiting
+// Rate limiting plus permissif pour le développement
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limite chaque IP à 100 requêtes par fenêtre
+  max: 1000 // Limite plus élevée pour le développement
 });
 app.use(limiter);
 
@@ -72,22 +91,31 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Route de test
 app.get('/', (req, res) => {
-  res.json({ message: 'API PharmaNet - Backend opérationnel' });
+  res.json({ 
+    message: 'API PharmaNet - Backend de développement',
+    environment: 'development',
+    port: PORT,
+    cors: 'enabled for localhost:3000'
+  });
 });
 
-// Endpoint de santé pour le déploiement
+// Endpoint de santé
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    environment: 'development'
   });
 });
 
 // Gestion des erreurs
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Erreur serveur interne' });
+  console.error('Erreur développement:', err.stack);
+  res.status(500).json({ 
+    message: 'Erreur serveur interne',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Erreur interne'
+  });
 });
 
 // Connexion PostgreSQL et démarrage du serveur
@@ -102,8 +130,11 @@ connectDB().then(async () => {
     console.log('✅ Tables synchronisées');
     
     app.listen(PORT, () => {
-      console.log(`🚀 Serveur démarré sur le port ${PORT}`);
+      console.log(`🚀 Serveur de développement démarré sur le port ${PORT}`);
       console.log(`📊 API disponible sur http://localhost:${PORT}`);
+      console.log(`🌐 CORS activé pour http://localhost:3000`);
+      console.log(`💡 Pour tester CORS: node test-cors-fix.js`);
+      console.log(`\n📝 Note: Les logs SQL sont désactivés pour réduire le bruit`);
     });
   } catch (error) {
     console.error('❌ Erreur lors de la synchronisation des tables:', error);
@@ -112,4 +143,4 @@ connectDB().then(async () => {
 }).catch(err => {
   console.error('❌ Erreur de connexion PostgreSQL:', err);
   process.exit(1);
-}); 
+});

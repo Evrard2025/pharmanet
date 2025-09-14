@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
               <span className="ml-4 text-2xl font-bold">PharmaNet</span>
             </div>
             <p className="text-gray-300 mb-4">
-              Votre santé est notre priorité. Découvrez notre gamme complète de produits pharmaceutiques et profitez de notre programme de fidélité exclusif.
+              Votre santé est notre priorité. Découvrez notre gamme complète de produits pharmaceutiques et services de santé.
             </p>
             <div className="flex space-x-4">
               <button className="text-gray-400 hover:text-white" aria-label="Facebook">
@@ -49,11 +49,11 @@ const Footer: React.FC = () => {
               </li>
               <li className="flex items-start text-gray-300">
                 <Phone className="w-4 h-4 mr-2 mt-0.5" />
-                <span>+33 1 23 45 67 89</span>
+                <span>+226 63 63 01 38 <br />+226 72 74 14 26</span>
               </li>
               <li className="flex items-start text-gray-300">
                 <MapPin className="w-4 h-4 mr-2 mt-0.5" />
-                <span>123 Rue de la Santé<br />75001 Paris, France</span>
+                <span>Ouagadougou<br />Burkina Faso</span>
               </li>
             </ul>
           </div>
@@ -65,11 +65,6 @@ const Footer: React.FC = () => {
               <li>
                 <Link to="/" className="text-gray-300 hover:text-white">
                   Accueil
-                </Link>
-              </li>
-              <li>
-                <Link to="/loyalty" className="text-gray-300 hover:text-white">
-                  Programme de fidélité
                 </Link>
               </li>
               <li>
@@ -89,7 +84,7 @@ const Footer: React.FC = () => {
         {/* Copyright */}
         <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm">
-            © 2024 PharmaNet. Tous droits réservés.
+            © 2025 PharmaNet. Tous droits réservés.
           </p>
           <div className="flex items-center mt-4 md:mt-0">
             <span className="text-gray-400 text-sm mr-2">Fait avec</span>

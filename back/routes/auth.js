@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const { protect } = require('../middleware/auth');
 const User = require('../models/User');
+const Patient = require('../models/Patient');
 
 const router = express.Router();
 
@@ -12,25 +13,46 @@ const router = express.Router();
 router.post('/register', [
   body('firstName').trim().isLength({ min: 2, max: 50 }).withMessage('Le prénom doit contenir entre 2 et 50 caractères'),
   body('lastName').trim().isLength({ min: 2, max: 50 }).withMessage('Le nom doit contenir entre 2 et 50 caractères'),
-  body('email').isEmail().normalizeEmail().withMessage('Email invalide'),
+  body('email').optional().isEmail().normalizeEmail().withMessage('Email invalide'),
   body('password').isLength({ min: 6 }).withMessage('Le mot de passe doit contenir au moins 6 caractères'),
-  body('phone').optional().isMobilePhone().withMessage('Numéro de téléphone invalide'),
+  body('phone').notEmpty().matches(/^[0-9+\-\s()]+$/).withMessage('Numéro de téléphone invalide'),
   body('officine').optional().trim().isLength({ min: 2, max: 100 }).withMessage('Le nom de l\'officine doit contenir entre 2 et 100 caractères'),
   body('ville').optional().trim().isLength({ min: 2, max: 50 }).withMessage('La ville doit contenir entre 2 et 50 caractères'),
   body('role').optional().isIn(['client', 'pharmacien', 'admin']).withMessage('Rôle invalide')
 ], async (req, res) => {
   try {
+    console.log('📝 Données reçues pour inscription:', JSON.stringify(req.body, null, 2));
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Erreurs de validation:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
     const { firstName, lastName, email, password, phone, address, officine, ville, role } = req.body;
 
+    // Validation selon le rôle
+    const userRole = role || 'client';
+    
+    // Pour les professionnels, l'email est obligatoire
+    if ((userRole === 'pharmacien' || userRole === 'admin') && !email) {
+      return res.status(400).json({ message: 'L\'email est obligatoire pour les professionnels' });
+    }
+
     // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ where: { email } });
+    let existingUser = null;
+    
+    // Vérifier par email si fourni
+    if (email) {
+      existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Un utilisateur avec cet email existe déjà' });
+      }
+    }
+    
+    // Vérifier par téléphone
+    existingUser = await User.findOne({ where: { phone } });
     if (existingUser) {
-      return res.status(400).json({ message: 'Un utilisateur avec cet email existe déjà' });
+      return res.status(400).json({ message: 'Un utilisateur avec ce numéro de téléphone existe déjà' });
     }
 
     // Construire l'adresse si officine et ville sont fournis
@@ -50,6 +72,31 @@ router.post('/register', [
       role: role || 'client'
     });
 
+    // Si c'est un patient (rôle 'client'), créer automatiquement un dossier patient médical
+    if (user.role === 'client') {
+      try {
+        // Créer un dossier patient médical avec les informations de base
+        const patientData = {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          telephone: user.phone,
+          adresse: user.address,
+          // Valeurs par défaut pour les champs obligatoires
+          dateNaissance: '1990-01-01', // Date par défaut, à modifier par le patient
+          traitementsChroniques: [],
+          traitementsPonctuels: [],
+          sousContraceptif: false
+        };
+
+        const patient = await Patient.create(patientData);
+        console.log(`✅ Dossier patient médical créé automatiquement pour l'utilisateur ${user.firstName} ${user.lastName} (ID: ${patient.id})`);
+      } catch (patientError) {
+        console.error('⚠️ Erreur lors de la création du dossier patient médical:', patientError);
+        // Ne pas faire échouer l'inscription si la création du dossier patient échoue
+      }
+    }
+
     // Générer le token JWT
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
@@ -65,9 +112,7 @@ router.post('/register', [
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        loyaltyPoints: user.loyaltyPoints,
-        loyaltyLevel: user.loyaltyLevel
+        role: user.role
       }
     });
   } catch (error) {
@@ -80,7 +125,7 @@ router.post('/register', [
 // @desc    Connexion utilisateur
 // @access  Public
 router.post('/login', [
-  body('email').isEmail().normalizeEmail().withMessage('Email invalide'),
+  body('identifier').notEmpty().withMessage('Email ou téléphone requis'),
   body('password').notEmpty().withMessage('Le mot de passe est requis')
 ], async (req, res) => {
   try {
@@ -89,18 +134,40 @@ router.post('/login', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password } = req.body;
+    const { identifier, password } = req.body;
+
+    // Déterminer si l'identifiant est un email ou un téléphone
+    const isEmail = identifier.includes('@');
+    
+    // Pour les professionnels (pharmacien/admin), seuls les emails sont acceptés
+    // Pour les patients (client), seuls les téléphones sont acceptés
+    let whereClause;
+    if (isEmail) {
+      // Connexion par email - chercher d'abord les professionnels
+      whereClause = { email: identifier, isActive: true };
+    } else {
+      // Connexion par téléphone - chercher d'abord les patients
+      whereClause = { phone: identifier, isActive: true };
+    }
 
     // Vérifier si l'utilisateur existe
-    const user = await User.findOne({ where: { email, isActive: true } });
+    const user = await User.findOne({ where: whereClause });
     if (!user) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+      return res.status(401).json({ message: 'Identifiant ou mot de passe incorrect' });
+    }
+
+    // Vérifier que le type de connexion correspond au rôle
+    if (isEmail && user.role === 'client') {
+      return res.status(401).json({ message: 'Les patients doivent se connecter avec leur numéro de téléphone' });
+    }
+    if (!isEmail && (user.role === 'pharmacien' || user.role === 'admin')) {
+      return res.status(401).json({ message: 'Les professionnels doivent se connecter avec leur email' });
     }
 
     // Vérifier le mot de passe
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Email ou mot de passe incorrect' });
+      return res.status(401).json({ message: 'Identifiant ou mot de passe incorrect' });
     }
 
     // Mettre à jour la dernière connexion
@@ -122,9 +189,7 @@ router.post('/login', [
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        role: user.role,
-        loyaltyPoints: user.loyaltyPoints,
-        loyaltyLevel: user.loyaltyLevel
+        role: user.role
       }
     });
   } catch (error) {
@@ -156,8 +221,6 @@ router.get('/me', protect, async (req, res) => {
         phone: user.phone,
         address: user.address,
         role: user.role,
-        loyaltyPoints: user.loyaltyPoints,
-        loyaltyLevel: user.loyaltyLevel,
         isActive: user.isActive,
         lastLogin: user.lastLogin,
         createdAt: user.createdAt
@@ -207,9 +270,7 @@ router.put('/profile', protect, [
         email: user.email,
         phone: user.phone,
         address: user.address,
-        role: user.role,
-        loyaltyPoints: user.loyaltyPoints,
-        loyaltyLevel: user.loyaltyLevel
+        role: user.role
       }
     });
   } catch (error) {

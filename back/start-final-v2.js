@@ -269,7 +269,6 @@ const loadRoutes = () => {
     app.use('/api/consultations', require('./routes/consultations'));
     app.use('/api/surveillance-biologique', require('./routes/surveillance-biologique'));
     app.use('/api/dashboard', require('./routes/dashboard'));
-    app.use('/api/loyalty', require('./routes/loyalty'));
     app.use('/api/admin-users', require('./routes/admin-users'));
 
     // Gestion des routes non trouvées

@@ -83,7 +83,7 @@ interface PatientData {
     medecin: string;
     diagnostic: string;
     indication: string;
-    ordonnance: string;
+    prescription: string;
     statut: string;
     type: string;
     notesPharmacien?: string;
@@ -774,10 +774,10 @@ const PatientCard: React.FC<PatientCardProps> = ({ patientId, onClose }) => {
                                     <p className="text-gray-500">{formatDate(consultation.dateFin)}</p>
                                   </div>
                                 )}
-                                {consultation.ordonnance && (
+                                {consultation.prescription && (
                                   <div className="md:col-span-2">
-                                    <span className="font-medium text-gray-600">Ordonnance:</span>
-                                    <p className="text-gray-500">{consultation.ordonnance}</p>
+                                    <span className="font-medium text-gray-600">Prescription:</span>
+                                    <p className="text-gray-500">{consultation.prescription}</p>
                                   </div>
                                 )}
                                 {consultation.isRenouvelable !== undefined && (
@@ -1004,6 +1004,22 @@ const PatientCard: React.FC<PatientCardProps> = ({ patientId, onClose }) => {
               <p className="text-xs text-gray-500 mt-2 print:text-xs">
                 Scannez pour accéder aux informations
               </p>
+              
+              {/* QR Code d'accès sécurisé */}
+              <div className="mt-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                <h4 className="text-sm font-semibold text-orange-800 mb-2">Code d'accès sécurisé</h4>
+                <div className="bg-white p-2 rounded border inline-block">
+                  <div className="w-20 h-20 bg-gray-100 flex items-center justify-center text-xs font-mono text-gray-600">
+                    QR Access
+                  </div>
+                </div>
+                <p className="text-xs text-orange-600 mt-1">
+                  Code: {patient.dateNaissance.replace(/-/g, '')}
+                </p>
+                <p className="text-xs text-orange-500 mt-1">
+                  Pour accéder aux informations médicales
+                </p>
+              </div>
             </div>
 
             {/* Actions */}

@@ -30,7 +30,7 @@ interface Consultation {
   dateConsultation: string;
   diagnostic?: string;
   indication?: string;
-  ordonnance?: string;
+  prescription?: string;
   notesPharmacien?: string;
   statut: 'active' | 'terminee' | 'annulee' | 'renouvellement';
   typeConsultation: 'courte' | 'longue' | 'renouvellement' | 'urgence';
@@ -49,7 +49,7 @@ interface NewConsultationForm {
   dateConsultation: string;
   diagnostic: string;
   indication: string;
-  ordonnance: string;
+  prescription: string;
   notesPharmacien: string;
   typeConsultation: 'courte' | 'longue' | 'renouvellement' | 'urgence';
 }
@@ -536,7 +536,7 @@ const Consultations: React.FC = () => {
                     dateConsultation: formData.get('dateConsultation') as string,
                     diagnostic: formData.get('diagnostic') as string,
                     indication: formData.get('indication') as string,
-                    ordonnance: formData.get('ordonnance') as string,
+                    prescription: formData.get('prescription') as string,
                     notesPharmacien: formData.get('notesPharmacien') as string,
                     typeConsultation: formData.get('typeConsultation') as 'courte' | 'longue' | 'renouvellement' | 'urgence'
                   };
@@ -628,12 +628,12 @@ const Consultations: React.FC = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ordonnance</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Prescription</label>
                       <textarea
-                        name="ordonnance"
+                        name="prescription"
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Détails de l'ordonnance..."
+                        placeholder="Détails de la prescription..."
                       />
                     </div>
 
@@ -892,10 +892,10 @@ const Consultations: React.FC = () => {
                     </div>
                   )}
                   
-                  {selectedConsultation.ordonnance && (
+                  {selectedConsultation.prescription && (
                     <div className="border-t pt-3 mt-3">
-                      <p className="font-medium text-gray-900 mb-1">Ordonnance:</p>
-                      <p className="text-gray-700">{selectedConsultation.ordonnance}</p>
+                      <p className="font-medium text-gray-900 mb-1">Prescription:</p>
+                      <p className="text-gray-700">{selectedConsultation.prescription}</p>
                     </div>
                   )}
                   

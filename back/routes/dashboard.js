@@ -39,15 +39,6 @@ router.get('/stats', protect, authorize('admin', 'pharmacien'), async (req, res)
     const totalPatients = await Patient.count();
     const totalConsultations = await Consultation.count();
 
-    // Statistiques de fidélité
-    const loyaltyStats = await User.findOne({
-      attributes: [
-        [sequelize.fn('SUM', sequelize.col('loyaltyPoints')), 'totalPoints'],
-        [sequelize.fn('AVG', sequelize.col('loyaltyPoints')), 'avgPoints'],
-        [sequelize.fn('COUNT', sequelize.col('id')), 'activeUsers']
-      ],
-      where: { isActive: true }
-    });
 
     // Statistiques mensuelles
     const monthlyStats = await Promise.all([
@@ -105,11 +96,6 @@ router.get('/stats', protect, authorize('admin', 'pharmacien'), async (req, res)
         totalUsers,
         totalPatients,
         totalConsultations,
-        loyaltyStats: {
-          totalPoints: parseInt(loyaltyStats?.dataValues?.totalPoints || 0),
-          avgPoints: Math.round(parseFloat(loyaltyStats?.dataValues?.avgPoints || 0)),
-          activeUsers: parseInt(loyaltyStats?.dataValues?.activeUsers || 0)
-        },
         recentActivity: formattedActivity,
         monthlyStats: {
           consultations: monthlyStats[0]

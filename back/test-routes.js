@@ -32,8 +32,8 @@ try {
   console.log('✅ Dashboard route:', typeof dashboardRoute);
   
   console.log('8. Test loyalty route...');
-  const loyaltyRoute = require('./routes/loyalty');
-  console.log('✅ Loyalty route:', typeof loyaltyRoute);
+  // const loyaltyRoute = require('./routes/loyalty'); // Supprimé
+  console.log('✅ Loyalty route: supprimé');
   
   console.log('9. Test admin-users route...');
   const adminUsersRoute = require('./routes/admin-users');

@@ -24,7 +24,7 @@ const User = sequelize.define('User', {
   },
   email: {
     type: DataTypes.STRING(100),
-    allowNull: false,
+    allowNull: true,
     unique: true,
     validate: {
       isEmail: true
@@ -39,7 +39,10 @@ const User = sequelize.define('User', {
   },
   phone: {
     type: DataTypes.STRING(20),
-    allowNull: true
+    allowNull: false,
+    validate: {
+      notEmpty: true
+    }
   },
   address: {
     type: DataTypes.TEXT,
@@ -48,16 +51,6 @@ const User = sequelize.define('User', {
   role: {
     type: DataTypes.ENUM('client', 'admin', 'pharmacien'),
     defaultValue: 'client',
-    allowNull: false
-  },
-  loyaltyPoints: {
-    type: DataTypes.INTEGER,
-    defaultValue: 0,
-    allowNull: false
-  },
-  loyaltyLevel: {
-    type: DataTypes.ENUM('bronze', 'argent', 'or', 'platine'),
-    defaultValue: 'bronze',
     allowNull: false
   },
   isActive: {
@@ -93,22 +86,5 @@ User.prototype.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-User.prototype.updateLoyaltyPoints = async function(points) {
-  this.loyaltyPoints += points;
-  
-  // Mise à jour du niveau de fidélité
-  if (this.loyaltyPoints >= 1000) {
-    this.loyaltyLevel = 'platine';
-  } else if (this.loyaltyPoints >= 500) {
-    this.loyaltyLevel = 'or';
-  } else if (this.loyaltyPoints >= 100) {
-    this.loyaltyLevel = 'argent';
-  } else {
-    this.loyaltyLevel = 'bronze';
-  }
-  
-  await this.save();
-  return this;
-};
 
 module.exports = User; 

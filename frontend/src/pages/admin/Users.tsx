@@ -20,12 +20,12 @@ interface User {
   email: string;
   phone?: string;
   role: 'client' | 'admin' | 'pharmacien';
-  loyaltyPoints?: number;
-  loyaltyLevel?: 'bronze' | 'argent' | 'or' | 'platine';
   address?: string;
   isActive: boolean;
   createdAt: string;
   lastLogin?: string;
+  loyaltyPoints?: number;
+  loyaltyLevel?: 'bronze' | 'silver' | 'gold' | 'platinum';
 }
 
 interface NewUserForm {
@@ -193,25 +193,26 @@ const AdminUsers: React.FC = () => {
     }
   };
 
-  const getLoyaltyLevelText = (level: string) => {
+  const getLoyaltyLevelColor = (level: string) => {
     switch (level) {
-      case 'bronze': return 'Bronze';
-      case 'argent': return 'Argent';
-      case 'or': return 'Or';
-      case 'platine': return 'Platine';
-      default: return 'Non défini';
+      case 'bronze': return 'bg-orange-100 text-orange-800';
+      case 'silver': return 'bg-gray-100 text-gray-800';
+      case 'gold': return 'bg-yellow-100 text-yellow-800';
+      case 'platinum': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-orange-100 text-orange-800';
     }
   };
 
-  const getLoyaltyLevelColor = (level: string) => {
+  const getLoyaltyLevelText = (level: string) => {
     switch (level) {
-      case 'bronze': return 'bg-amber-100 text-amber-800';
-      case 'argent': return 'bg-gray-100 text-gray-800';
-      case 'or': return 'bg-yellow-100 text-yellow-800';
-      case 'platine': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'bronze': return 'Bronze';
+      case 'silver': return 'Argent';
+      case 'gold': return 'Or';
+      case 'platinum': return 'Platine';
+      default: return 'Bronze';
     }
   };
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR');
@@ -314,9 +315,6 @@ const AdminUsers: React.FC = () => {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Rôle
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Fidélité
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Statut
